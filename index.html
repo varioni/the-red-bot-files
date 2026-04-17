@@ -115,12 +115,12 @@
 
         .credit {
             display: block;
-            margin-top: 20px;
+            margin-top: 15px;
             font-style: normal;
-            font-size: 0.75rem;
-            opacity: 0.7;
+            font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 1px;
+            opacity: 0.6;
         }
     </style>
 </head>
@@ -141,4 +141,51 @@
         
         <div id="output-area" style="margin-top: 60px;">
             <div id="display-question" class="user-question-display"></div>
-            <div
+            <div id="chat-box" class="response"></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for The Red Hand Files. The responses generated here are the product of a machine and are in no way affiliated with, authorized, or endorsed by Nick Cave.
+        <span class="credit">Engineered by varioni</span>
+    </div>
+
+<script>
+    async function askBot() {
+        const questionInput = document.getElementById('question-input');
+        const displayQuestion = document.getElementById('display-question');
+        const chatBox = document.getElementById('chat-box');
+        const questionText = questionInput.value;
+        
+        if (!questionText.trim()) return;
+
+        // Visual Reset and Feedback
+        displayQuestion.innerText = questionText;
+        chatBox.innerText = "...";
+        questionInput.value = '';
+
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: questionText })
+            });
+            
+            const data = await response.json();
+            
+            // Safety split for debug info
+            let finalAnswer = data.answer;
+            if (finalAnswer.includes("--- DEBUG:")) {
+                finalAnswer = finalAnswer.split("--- DEBUG:")[0];
+            }
+            
+            chatBox.innerText = finalAnswer.trim();
+            
+        } catch (error) {
+            chatBox.innerText = "A silence has fallen over the archive. Please try again.";
+        }
+    }
+</script>
+
+</body>
+</html>
