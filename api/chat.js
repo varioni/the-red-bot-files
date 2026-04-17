@@ -1,25 +1,25 @@
 export default async function handler(req, res) {
   try {
-    const { question } = req.body;
+    // 1. Get the question from the body (with a fallback)
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const userQuestion = body?.question || "Hello"; 
 
-    // 1. Fetching from Astra with a "Safety Net"
-    let archiveMemory = "You are Nick Cave. Be poetic.";
+    // 2. Fetch from Astra
+    let archiveMemory = "You are Nick Cave.";
     try {
       const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/rest/v2/namespaces/default_keyspace/collections/archives/rows`;
       const astraRes = await fetch(astraUrl, {
           headers: { 'X-Cassandra-Token': process.env.ASTRA_TOKEN }
       });
       const astraData = await astraRes.json();
-      
-      if (astraData && astraData.data && astraData.data.length > 0) {
-        // This line is now a "Detective" - it looks for 'answer' OR 'question' OR 'content'
+      if (astraData?.data) {
         archiveMemory = astraData.data.map(d => d.answer || d.question || d.content || "").join("\n\n");
       }
     } catch (e) {
-      console.error("Astra Error:", e);
+      console.log("Astra skipped");
     }
 
-    // 2. Talk to Groq
+    // 3. Talk to Groq - using 'userQuestion' correctly
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -29,23 +29,21 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { role: "system", content: "You are the Red Bot. Use this archive context: " + archiveMemory.substring(0, 4000) },
-          { role: "user", content: question }
+          { role: "system", content: "You are the Red Bot, an AI Nick Cave. Context: " + archiveMemory.substring(0, 4000) },
+          { role: "user", content: String(userQuestion) } // Force it to be a string
         ]
       })
     });
 
     const data = await groqResponse.json();
 
-    // 3. The "Anti-Crash" Check
-    if (data && data.choices && data.choices[0] && data.choices[0].message) {
+    if (data?.choices?.[0]?.message?.content) {
       res.status(200).json({ answer: data.choices[0].message.content });
     } else {
-      // If the AI is empty, this tells us WHY
-      res.status(200).json({ answer: "The AI sent an empty reply. Error info: " + JSON.stringify(data) });
+      res.status(200).json({ answer: "The AI is thinking in silence. " + JSON.stringify(data) });
     }
 
   } catch (err) {
-    res.status(200).json({ answer: "Final System Error: " + err.message });
+    res.status(200).json({ answer: "System Error: " + err.message });
   }
 }
