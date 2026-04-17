@@ -6,10 +6,10 @@ export default async function handler(req, res) {
     let archiveMemory = "";
     let debugInfo = "";
 
-    // 1. DIRECT DOCUMENT ACCESS (The Master Key)
+    // 1. PULL FROM THE VECTOR TABLE
     try {
-      // We are switching to the 'documents' path which is more reliable for simple retrieval
-      const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/rest/v2/namespaces/default_keyspace/collections/archives?page-size=20`;
+      // We use the rows API but fetch more results to be sure
+      const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/rest/v2/namespaces/default_keyspace/collections/archives/rows?page-size=50`;
       
       const astraRes = await fetch(astraUrl, {
         headers: { 'X-Cassandra-Token': process.env.ASTRA_TOKEN }
@@ -17,20 +17,18 @@ export default async function handler(req, res) {
       
       const astraData = await astraRes.json();
 
-      // Astra Documents API returns data inside 'data' as an object of objects
-      if (astraData && astraData.data) {
-        const rows = Object.values(astraData.data);
-        if (rows.length > 0) {
-          debugInfo = "Master Key Success! Found " + rows.length + " letters.";
-          archiveMemory = rows.map(r => r.answer || "").join("\n\n");
-        } else {
-          debugInfo = "Archive is empty on the Document level.";
-        }
+      if (astraData && astraData.data && astraData.data.length > 0) {
+        debugInfo = "Success! Found " + astraData.data.length + " letters in the Vector Table.";
+        // We join the 'answer' column content
+        archiveMemory = astraData.data
+          .map(row => row.answer || row.question || "")
+          .filter(text => text.length > 0)
+          .join("\n\n---\n\n");
       } else {
-        debugInfo = "Astra returned an unexpected format: " + JSON.stringify(astraData).substring(0, 100);
+        debugInfo = "Connected to Vector Table, but it returned 0 rows.";
       }
     } catch (e) {
-      debugInfo = "Astra Connection Failed: " + e.message;
+      debugInfo = "Astra Table Fetch Failed: " + e.message;
     }
 
     // 2. TALK TO THE AI
@@ -43,7 +41,10 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { role: "system", content: "You are the Red Bot. You MUST use the following context to answer. If the context mentions 'July 2025', quote it exactly. CONTEXT: " + archiveMemory.substring(0, 5000) },
+          { 
+            role: "system", 
+            content: "You are the Red Bot. You MUST use the provided archive to answer. Mention the specific Issue # if you see it. ARCHIVE: " + archiveMemory.substring(0, 6000) 
+          },
           { role: "user", content: question }
         ]
       })
