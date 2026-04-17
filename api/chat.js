@@ -2,8 +2,11 @@ export default async function handler(req, res) {
     try {
         const { question } = JSON.parse(req.body);
 
-        // 1. Fetch from Astra - using the simplest endpoint
-        const astraResponse = await fetch(`${process.env.ASTRA_ENDPOINT}/api/rest/v2/namespaces/default_keyspace/collections/archives?page-size=3`, {
+        // We try both common keyspace names to be safe
+        const keyspace = "default_keyspace"; 
+        const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/rest/v2/namespaces/${keyspace}/collections/archives/rows`;
+
+        const astraResponse = await fetch(astraUrl, {
             method: 'GET',
             headers: {
                 'X-Cassandra-Token': process.env.ASTRA_TOKEN,
@@ -13,14 +16,13 @@ export default async function handler(req, res) {
 
         const context = await astraResponse.json();
         
-        // This gathers the "Soul" from the letters we found
-        let letters = "Poetic, mysterious, kind, and deep.";
-        if (context.data) {
-            // We turn the data into a string the AI can read
-            letters = Object.values(context.data).map(d => d.answer || d.content).join("\n\n---\n\n");
+        // Let's grab the actual text regardless of how Astra formatted it
+        let letters = "Poetic and deep.";
+        if (context.data && context.data.length > 0) {
+            letters = context.data.map(d => d.answer || d.content || d.text || "").join("\n\n");
         }
 
-        // 2. Send to Groq (The AI)
+        // Now talk to the AI
         const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -30,7 +32,7 @@ export default async function handler(req, res) {
             body: JSON.stringify({
                 model: "llama3-8b-8192",
                 messages: [
-                    { role: "system", content: "You are the 'Red Bot'. Answer like Nick Cave using this context: " + letters },
+                    { role: "system", content: "You are the 'Red Bot', an AI with the soul of Nick Cave. Use this context: " + letters.substring(0, 3000) },
                     { role: "user", content: question }
                 ]
             })
@@ -40,6 +42,7 @@ export default async function handler(req, res) {
         res.status(200).json({ answer: aiResult.choices[0].message.content });
 
     } catch (error) {
-        res.status(500).json({ answer: "The archive is being elusive. Try asking me something else." });
+        console.error(error);
+        res.status(500).json({ answer: "The archives are quiet tonight. Ask me something else." });
     }
 }
