@@ -1,32 +1,41 @@
 export default async function handler(req, res) {
   try {
-    // 1. Get the question safely
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const question = body?.question || "Hello";
 
     let archiveMemory = "";
-    let debugInfo = "Astra check in progress...";
+    let debugInfo = "";
 
-    // 2. The Rugged Astra Fetch
+    // 1. TALK TO THE VECTOR COLLECTION
     try {
-      const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/rest/v2/namespaces/default_keyspace/collections/archives/rows`;
+      // Note the "/query" at the end - this is for Vector collections
+      const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/rest/v2/namespaces/default_keyspace/collections/archives/query`;
+      
       const astraRes = await fetch(astraUrl, {
-        headers: { 'X-Cassandra-Token': process.env.ASTRA_TOKEN }
+        method: 'POST',
+        headers: { 
+          'X-Cassandra-Token': process.env.ASTRA_TOKEN,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          "page-size": 5 // We grab the 5 most relevant letters
+        })
       });
+      
       const astraData = await astraRes.json();
 
       if (astraData && astraData.data && astraData.data.length > 0) {
-        const firstRow = astraData.data[0];
-        debugInfo = "Success! Columns found: " + Object.keys(firstRow).join(", ");
-        archiveMemory = astraData.data.map(d => d.answer || d.question || d.content || d.body || "").join(" ");
+        debugInfo = "Vector Archive Accessed. Found " + astraData.data.length + " records.";
+        // We grab the text from the 'answer' column I see in your screenshot
+        archiveMemory = astraData.data.map(d => d.answer || "").join("\n\n");
       } else {
-        debugInfo = "Database connected, but no letters found. Did you upload the CSV?";
+        debugInfo = "Vector Collection found, but returned no data.";
       }
     } catch (e) {
-      debugInfo = "Astra Connection Failed: " + e.message;
+      debugInfo = "Astra Error: " + e.message;
     }
 
-    // 3. Talk to Groq
+    // 2. TALK TO THE AI
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -36,7 +45,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { role: "system", content: "You are Nick Cave. If there is ARCHIVE info, use it. ARCHIVE: " + archiveMemory.substring(0, 4000) },
+          { role: "system", content: "You are Nick Cave. Answer using this archive context: " + archiveMemory.substring(0, 5000) },
           { role: "user", content: question }
         ]
       })
@@ -48,7 +57,6 @@ export default async function handler(req, res) {
     res.status(200).json({ answer: aiAnswer + "\n\n--- DEBUG: " + debugInfo });
 
   } catch (err) {
-    // This catch block ensures we NEVER see a 'Reading 0' error again
-    res.status(200).json({ answer: "The archive is flickering. Error: " + err.message });
+    res.status(200).json({ answer: "System Error: " + err.message });
   }
 }
