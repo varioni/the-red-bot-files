@@ -18,110 +18,58 @@
             letter-spacing: 0.5px;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 80px;
-        }
+        .header { text-align: center; margin-bottom: 80px; }
 
-        .logo-svg {
-            width: 80px;
-            height: auto;
-            margin-bottom: 20px;
-            fill: #8B1D20;
-        }
+        .logo-svg { width: 80px; height: auto; margin-bottom: 20px; fill: #8B1D20; }
 
-        h1 {
-            font-family: 'IM Fell DW Pica', serif;
-            font-size: 2.8rem;
-            text-transform: uppercase;
-            margin: 10px 0;
-            font-weight: normal;
-        }
+        h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.8rem; text-transform: uppercase; margin: 10px 0; font-weight: normal; }
 
-        .divider {
-            width: 100%;
-            max-width: 800px;
-            border-bottom: 1px solid #D9D4C7;
-            margin-bottom: 60px;
-        }
+        .divider { width: 100%; max-width: 800px; border-bottom: 1px solid #D9D4C7; margin-bottom: 60px; }
 
-        .container {
-            max-width: 700px;
-            width: 100%;
-        }
+        .container { max-width: 900px; width: 100%; }
 
         textarea {
-            width: 100%;
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid #D9D4C7;
-            font-family: 'EB Garamond', serif;
-            font-size: 1.4rem;
-            font-style: italic;
-            color: #444;
-            padding: 10px 0;
-            margin-bottom: 20px;
-            outline: none;
-            resize: none;
+            width: 100%; background: transparent; border: none; border-bottom: 1px solid #D9D4C7;
+            font-family: 'EB Garamond', serif; font-size: 1.4rem; font-style: italic; color: #444;
+            padding: 10px 0; margin-bottom: 20px; outline: none; resize: none;
         }
 
         button {
-            background: transparent;
-            color: #8B1D20;
-            border: 1px solid #8B1D20;
-            padding: 10px 30px;
-            font-family: 'EB Garamond', serif;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            background: transparent; color: #8B1D20; border: 1px solid #8B1D20; padding: 10px 30px;
+            font-family: 'EB Garamond', serif; text-transform: uppercase; letter-spacing: 2px; cursor: pointer;
         }
 
-        button:hover {
-            background: #8B1D20;
-            color: #F4F1EA;
-        }
+        button:hover { background: #8B1D20; color: #F4F1EA; }
 
         .user-question-display {
-            font-family: 'EB Garamond', serif;
-            font-weight: 700;
-            font-size: 1.5rem;
-            color: #8B1D20;
-            text-align: center;
-            margin-bottom: 40px;
-            line-height: 1.4;
-            white-space: pre-wrap;
+            font-weight: 700; font-size: 1.5rem; color: #8B1D20; text-align: center;
+            margin-bottom: 60px; line-height: 1.4; white-space: pre-wrap;
         }
 
-        .response {
-            margin-top: 20px;
-            font-size: 1.25rem;
-            line-height: 1.9;
-            color: #111;
-            white-space: pre-wrap;
+        /* PHOTO AND RESPONSE LAYOUT */
+        .content-wrapper {
+            display: flex; gap: 50px; align-items: flex-start; margin-top: 40px;
         }
+
+        .polaroid-frame {
+            background: white; padding: 12px 12px 50px 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transform: rotate(-1.5deg);
+            max-width: 320px; width: 100%;
+            display: none; /* Shown after load */
+        }
+
+        .polaroid-frame img { width: 100%; filter: sepia(0.1) contrast(1.05); }
+
+        .response { flex: 1; font-size: 1.25rem; line-height: 1.9; color: #111; white-space: pre-wrap; }
 
         .footer {
-            margin-top: 150px;
-            max-width: 600px;
-            text-align: center;
-            font-size: 0.85rem;
-            color: #A9A497;
-            line-height: 1.6;
-            border-top: 1px solid #D9D4C7;
-            padding-top: 40px;
-            font-style: italic;
+            margin-top: 150px; max-width: 600px; text-align: center; font-size: 0.85rem;
+            color: #A9A497; line-height: 1.6; border-top: 1px solid #D9D4C7; padding-top: 40px; font-style: italic;
         }
+        .credit { display: block; margin-top: 15px; font-style: normal; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; }
 
-        .credit {
-            display: block;
-            margin-top: 15px;
-            font-style: normal;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.6;
-        }
+        @media (max-width: 800px) { .content-wrapper { flex-direction: column; align-items: center; } }
     </style>
 </head>
 <body>
@@ -137,11 +85,17 @@
 
     <div class="container">
         <textarea id="question-input" rows="3" placeholder="Write your letter here..."></textarea>
-        <button onclick="askBot()">Submit</button>
+        <div style="text-align:center;"><button onclick="askBot()">Submit</button></div>
         
         <div id="output-area" style="margin-top: 60px;">
             <div id="display-question" class="user-question-display"></div>
-            <div id="chat-box" class="response"></div>
+            
+            <div class="content-wrapper">
+                <div id="photo-frame" class="polaroid-frame">
+                    <img id="photo-img" src="" alt="Visual meditation">
+                </div>
+                <div id="chat-box" class="response"></div>
+            </div>
         </div>
     </div>
 
@@ -155,13 +109,15 @@
         const questionInput = document.getElementById('question-input');
         const displayQuestion = document.getElementById('display-question');
         const chatBox = document.getElementById('chat-box');
+        const photoFrame = document.getElementById('photo-frame');
+        const photoImg = document.getElementById('photo-img');
         const questionText = questionInput.value;
         
         if (!questionText.trim()) return;
 
-        // Visual Reset and Feedback
         displayQuestion.innerText = questionText;
         chatBox.innerText = "...";
+        photoFrame.style.display = 'none';
         questionInput.value = '';
 
         try {
@@ -172,17 +128,16 @@
             });
             
             const data = await response.json();
-            
-            // Safety split for debug info
-            let finalAnswer = data.answer;
-            if (finalAnswer.includes("--- DEBUG:")) {
-                finalAnswer = finalAnswer.split("--- DEBUG:")[0];
+            chatBox.innerText = data.answer.split("--- DEBUG:")[0].trim();
+
+            if (data.imagePrompt) {
+                const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(data.imagePrompt)}?width=500&height=500&nologo=true&seed=${Math.floor(Math.random()*1000)}`;
+                photoImg.src = imageUrl;
+                photoImg.onload = () => { photoFrame.style.display = 'block'; };
             }
             
-            chatBox.innerText = finalAnswer.trim();
-            
         } catch (error) {
-            chatBox.innerText = "A silence has fallen over the archive. Please try again.";
+            chatBox.innerText = "A silence has fallen over the archive.";
         }
     }
 </script>
