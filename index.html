@@ -17,8 +17,8 @@
         button:hover { background: #8B1D20; color: #F4F1EA; }
         .user-question-display { font-weight: 700; font-size: 1.5rem; color: #8B1D20; text-align: center; margin-bottom: 60px; line-height: 1.4; white-space: pre-wrap; }
         .content-wrapper { display: flex; gap: 50px; align-items: flex-start; margin-top: 40px; }
-        .polaroid-frame { background: white; padding: 12px 12px 50px 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); transform: rotate(-1.5deg); max-width: 320px; width: 100%; visibility: hidden; }
-        .polaroid-frame img { width: 100%; filter: sepia(0.1) contrast(1.05); }
+        .polaroid-frame { background: white; padding: 12px 12px 50px 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); transform: rotate(-1.5deg); max-width: 320px; width: 100%; display: none; }
+        .polaroid-frame img { width: 100%; filter: sepia(0.1) contrast(1.05); display: block; }
         .response { flex: 1; font-size: 1.25rem; line-height: 1.9; color: #111; white-space: pre-wrap; }
         .footer { margin-top: 150px; max-width: 600px; text-align: center; font-size: 0.85rem; color: #A9A497; line-height: 1.6; border-top: 1px solid #D9D4C7; padding-top: 40px; font-style: italic; }
         .credit { display: block; margin-top: 15px; font-style: normal; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; }
@@ -64,7 +64,7 @@
 
         displayQuestion.innerText = questionText;
         chatBox.innerText = "...";
-        photoFrame.style.visibility = 'hidden'; // Hide the old photo
+        photoFrame.style.display = 'none'; // Hide current frame
         questionInput.value = '';
 
         try {
@@ -78,14 +78,13 @@
             chatBox.innerText = data.answer.split("--- DEBUG:")[0].trim();
 
             if (data.imagePrompt) {
-                // The Cache Buster: We add &t=[timestamp] so the URL is unique every time
-                const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(data.imagePrompt)}?width=500&height=500&nologo=true&t=${Date.now()}`;
-                photoImg.src = imageUrl;
+                // Simplified URL to help with loading consistency
+                const query = encodeURIComponent(data.imagePrompt);
+                const seed = Math.floor(Math.random() * 1000000);
+                photoImg.src = `https://image.pollinations.ai/prompt/${query}?width=500&height=500&nologo=true&seed=${seed}`;
                 
-                // Only show once fully loaded to avoid flickering
-                photoImg.onload = () => {
-                    photoFrame.style.visibility = 'visible';
-                };
+                // Show the frame immediately so the user sees something is happening
+                photoFrame.style.display = 'block';
             }
             
         } catch (error) {
