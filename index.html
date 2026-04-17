@@ -16,25 +16,9 @@
         button { background: transparent; color: #8B1D20; border: 1px solid #8B1D20; padding: 10px 30px; font-family: 'EB Garamond', serif; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; }
         button:hover { background: #8B1D20; color: #F4F1EA; }
         .user-question-display { font-weight: 700; font-size: 1.5rem; color: #8B1D20; text-align: center; margin-bottom: 60px; line-height: 1.4; white-space: pre-wrap; }
-        
         .content-wrapper { display: flex; gap: 50px; align-items: flex-start; margin-top: 40px; }
-        
-        /* The Polaroid Frame */
-        .polaroid-frame { 
-            background: white; 
-            padding: 12px 12px 50px 12px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
-            transform: rotate(-1.5deg); 
-            max-width: 320px; 
-            width: 100%; 
-            display: none; 
-        }
-        .polaroid-frame img { 
-            width: 100%; 
-            filter: grayscale(0.3) sepia(0.2) contrast(1.1); 
-            display: block; 
-        }
-        
+        .polaroid-frame { background: white; padding: 12px 12px 50px 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); transform: rotate(-1.5deg); max-width: 320px; width: 100%; display: none; }
+        .polaroid-frame img { width: 100%; filter: grayscale(0.2) sepia(0.2) contrast(1.1); display: block; }
         .response { flex: 1; font-size: 1.25rem; line-height: 1.9; color: #111; white-space: pre-wrap; }
         .footer { margin-top: 150px; max-width: 600px; text-align: center; font-size: 0.85rem; color: #A9A497; line-height: 1.6; border-top: 1px solid #D9D4C7; padding-top: 40px; font-style: italic; }
         .credit { display: block; margin-top: 15px; font-style: normal; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; }
@@ -91,15 +75,12 @@
             });
             
             const data = await response.json();
-            chatBox.innerText = data.answer.split("--- DEBUG:")[0].trim();
+            chatBox.innerText = data.answer.trim();
 
-            if (data.imagePrompt) {
-                // Using Unsplash Source for reliable, high-quality photographic loading
-                // We extract the theme from the prompt and add 'melancholy' to the search
-                const theme = data.imagePrompt.replace('A grainy vintage polaroid photograph of ', '').split(',')[0];
-                const finalQuery = encodeURIComponent(theme + " melancholy dark aesthetic");
-                
-                photoImg.src = `https://images.unsplash.com/photo-1?auto=format&fit=crop&w=500&q=80&sig=${Math.random()}&query=${finalQuery}`;
+            if (data.imageTheme) {
+                const query = encodeURIComponent(data.imageTheme + " melancholy aesthetic");
+                // Using Unsplash Source directly with a random seed to prevent caching
+                photoImg.src = `https://source.unsplash.com/featured/500x500/?${query}&sig=${Math.random()}`;
                 
                 photoImg.onload = () => {
                     photoFrame.style.display = 'block';
