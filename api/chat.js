@@ -6,33 +6,31 @@ export default async function handler(req, res) {
     let archiveMemory = "";
     let debugInfo = "";
 
-    // 1. TALK TO THE VECTOR COLLECTION
+    // 1. DIRECT DOCUMENT ACCESS (The Master Key)
     try {
-      // Note the "/query" at the end - this is for Vector collections
-      const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/rest/v2/namespaces/default_keyspace/collections/archives/query`;
+      // We are switching to the 'documents' path which is more reliable for simple retrieval
+      const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/rest/v2/namespaces/default_keyspace/collections/archives?page-size=20`;
       
       const astraRes = await fetch(astraUrl, {
-        method: 'POST',
-        headers: { 
-          'X-Cassandra-Token': process.env.ASTRA_TOKEN,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          "page-size": 5 // We grab the 5 most relevant letters
-        })
+        headers: { 'X-Cassandra-Token': process.env.ASTRA_TOKEN }
       });
       
       const astraData = await astraRes.json();
 
-      if (astraData && astraData.data && astraData.data.length > 0) {
-        debugInfo = "Vector Archive Accessed. Found " + astraData.data.length + " records.";
-        // We grab the text from the 'answer' column I see in your screenshot
-        archiveMemory = astraData.data.map(d => d.answer || "").join("\n\n");
+      // Astra Documents API returns data inside 'data' as an object of objects
+      if (astraData && astraData.data) {
+        const rows = Object.values(astraData.data);
+        if (rows.length > 0) {
+          debugInfo = "Master Key Success! Found " + rows.length + " letters.";
+          archiveMemory = rows.map(r => r.answer || "").join("\n\n");
+        } else {
+          debugInfo = "Archive is empty on the Document level.";
+        }
       } else {
-        debugInfo = "Vector Collection found, but returned no data.";
+        debugInfo = "Astra returned an unexpected format: " + JSON.stringify(astraData).substring(0, 100);
       }
     } catch (e) {
-      debugInfo = "Astra Error: " + e.message;
+      debugInfo = "Astra Connection Failed: " + e.message;
     }
 
     // 2. TALK TO THE AI
@@ -45,7 +43,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { role: "system", content: "You are Nick Cave. Answer using this archive context: " + archiveMemory.substring(0, 5000) },
+          { role: "system", content: "You are the Red Bot. You MUST use the following context to answer. If the context mentions 'July 2025', quote it exactly. CONTEXT: " + archiveMemory.substring(0, 5000) },
           { role: "user", content: question }
         ]
       })
