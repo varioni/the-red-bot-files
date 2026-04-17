@@ -6,29 +6,36 @@ export default async function handler(req, res) {
     let archiveMemory = "";
     let debugInfo = "";
 
-    // 1. PULL FROM THE VECTOR TABLE
+    // 1. THE JSON API COMMAND (The most robust way)
     try {
-      // We use the rows API but fetch more results to be sure
-      const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/rest/v2/namespaces/default_keyspace/collections/archives/rows?page-size=50`;
+      const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/json/v1/default_keyspace/archives`;
       
       const astraRes = await fetch(astraUrl, {
-        headers: { 'X-Cassandra-Token': process.env.ASTRA_TOKEN }
+        method: 'POST',
+        headers: { 
+          'Token': process.env.ASTRA_TOKEN,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          "find": {
+            "filter": {},
+            "options": { "limit": 20 }
+          }
+        })
       });
       
       const astraData = await astraRes.json();
 
-      if (astraData && astraData.data && astraData.data.length > 0) {
-        debugInfo = "Success! Found " + astraData.data.length + " letters in the Vector Table.";
-        // We join the 'answer' column content
-        archiveMemory = astraData.data
-          .map(row => row.answer || row.question || "")
-          .filter(text => text.length > 0)
-          .join("\n\n---\n\n");
+      if (astraData?.data?.documents && astraData.data.documents.length > 0) {
+        debugInfo = `Archive Accessed! ${astraData.data.documents.length} letters found.`;
+        archiveMemory = astraData.data.documents
+          .map(doc => doc.answer || doc.question || "")
+          .join("\n\n");
       } else {
-        debugInfo = "Connected to Vector Table, but it returned 0 rows.";
+        debugInfo = "Connected to JSON API, but no documents found.";
       }
     } catch (e) {
-      debugInfo = "Astra Table Fetch Failed: " + e.message;
+      debugInfo = "JSON API Error: " + e.message;
     }
 
     // 2. TALK TO THE AI
@@ -41,10 +48,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { 
-            role: "system", 
-            content: "You are the Red Bot. You MUST use the provided archive to answer. Mention the specific Issue # if you see it. ARCHIVE: " + archiveMemory.substring(0, 6000) 
-          },
+          { role: "system", content: "You are the Red Bot. You MUST use this Archive to answer: " + archiveMemory.substring(0, 6000) },
           { role: "user", content: question }
         ]
       })
