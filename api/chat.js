@@ -1,8 +1,11 @@
 export default async function handler(req, res) {
   try {
-    // This is the fix: check if body is already an object or needs parsing
-    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    const question = body.question;
+    const chunks = [];
+    for await (const chunk of req) {
+      chunks.push(chunk);
+    }
+    const body = JSON.parse(Buffer.concat(chunks).toString());
+    const { question } = body;
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -12,19 +15,14 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "llama3-8b-8192",
-        messages: [{ role: "user", content: "Answer this like Nick Cave: " + question }]
+        messages: [{ role: "user", content: "Answer like Nick Cave: " + question }]
       })
     });
 
     const data = await response.json();
-    
-    if (data.choices && data.choices[0]) {
-      res.status(200).json({ answer: data.choices[0].message.content });
-    } else {
-      res.status(200).json({ answer: "The AI is silent. Check the Groq key." });
-    }
+    res.status(200).json({ answer: data.choices[0].message.content });
+
   } catch (e) {
-    // This tells us exactly what the error is
-    res.status(200).json({ answer: "Error: " + e.message });
+    res.status(200).json({ answer: "The archive is flickering. " + e.message });
   }
 }
