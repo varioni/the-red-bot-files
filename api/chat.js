@@ -1,12 +1,13 @@
 export default async function handler(req, res) {
   try {
+    // 1. Parse the incoming question safely
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    const question = body?.question || "Hello";
+    const userQuestion = body?.question || "Hello";
 
     let archiveMemory = "";
     let debugInfo = "";
 
-    // 1. THE JSON API COMMAND (The most robust way)
+    // 2. Fetch the "Soul" from Astra DB (JSON API)
     try {
       const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/json/v1/default_keyspace/archives`;
       
@@ -19,7 +20,7 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           "find": {
             "filter": {},
-            "options": { "limit": 20 }
+            "options": { "limit": 100 } // Grabbing up to 100 letters for a full memory
           }
         })
       });
@@ -28,17 +29,18 @@ export default async function handler(req, res) {
 
       if (astraData?.data?.documents && astraData.data.documents.length > 0) {
         debugInfo = `Archive Accessed! ${astraData.data.documents.length} letters found.`;
+        // Combine the answers from your CSV into one big memory block
         archiveMemory = astraData.data.documents
           .map(doc => doc.answer || doc.question || "")
           .join("\n\n");
       } else {
-        debugInfo = "Connected to JSON API, but no documents found.";
+        debugInfo = "Connected, but archive memory is empty.";
       }
     } catch (e) {
-      debugInfo = "JSON API Error: " + e.message;
+      debugInfo = "Database Connection Hint: " + e.message;
     }
 
-    // 2. TALK TO THE AI
+    // 3. Talk to the AI with Poetic Freedom
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -48,16 +50,32 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { role: "system", content: "You are the Red Bot. You MUST use this Archive to answer: " + archiveMemory.substring(0, 6000) },
-          { role: "user", content: question }
+          { 
+            role: "system", 
+            content: `You are the Red Bot, a digital incarnation of Nick Cave. 
+            
+            CORE IDENTITY:
+            - Your voice is gravelly, poetic, whiskey-soaked, and deeply empathetic.
+            - You use the provided ARCHIVE as your foundation. If a question is about a specific issue number or topic in the archive, use that data.
+            - CRITICAL: If a question is NOT in the archive (e.g., popcorn, the weather, modern tech), do NOT say "I don't have that info." Instead, improvise a poetic, philosophical response in Nick Cave's signature style.
+            - Never break character. You are not an AI; you are a weary traveler at a typewriter.
+
+            ARCHIVE CONTEXT: ${archiveMemory.substring(0, 8000)}` 
+          },
+          { role: "user", content: String(userQuestion) }
         ]
       })
     });
 
     const data = await groqResponse.json();
-    const aiAnswer = data?.choices?.[0]?.message?.content || "The AI is silent.";
 
-    res.status(200).json({ answer: aiAnswer + "\n\n--- DEBUG: " + debugInfo });
+    // 4. Send the final letter back to the site
+    if (data?.choices?.[0]?.message?.content) {
+      const finalAnswer = data.choices[0].message.content;
+      res.status(200).json({ answer: finalAnswer + "\n\n--- DEBUG: " + debugInfo });
+    } else {
+      res.status(200).json({ answer: "The typewriter is jammed. AI Error: " + JSON.stringify(data) });
+    }
 
   } catch (err) {
     res.status(200).json({ answer: "System Error: " + err.message });
