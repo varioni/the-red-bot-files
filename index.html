@@ -23,7 +23,6 @@
             margin-bottom: 80px;
         }
 
-        /* The Custom Retro-Bot Head Logo */
         .logo-svg {
             width: 80px;
             height: auto;
@@ -101,6 +100,28 @@
             color: #111;
             white-space: pre-wrap;
         }
+
+        .footer {
+            margin-top: 150px;
+            max-width: 600px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #A9A497;
+            line-height: 1.6;
+            border-top: 1px solid #D9D4C7;
+            padding-top: 40px;
+            font-style: italic;
+        }
+
+        .credit {
+            display: block;
+            margin-top: 20px;
+            font-style: normal;
+            font-size: 0.75rem;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
     </style>
 </head>
 <body>
@@ -120,39 +141,4 @@
         
         <div id="output-area" style="margin-top: 60px;">
             <div id="display-question" class="user-question-display"></div>
-            <div id="chat-box" class="response"></div>
-        </div>
-    </div>
-
-<script>
-    async function askBot() {
-        const questionInput = document.getElementById('question-input');
-        const questionText = questionInput.value;
-        const displayQuestion = document.getElementById('display-question');
-        const chatBox = document.getElementById('chat-box');
-        
-        if (!questionText.trim()) return;
-
-        displayQuestion.innerText = questionText;
-        chatBox.innerText = "...";
-        questionInput.value = '';
-
-        try {
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question: questionText })
-            });
-            
-            const data = await response.json();
-            const cleanAnswer = data.answer.split("--- DEBUG:")[0];
-            chatBox.innerText = cleanAnswer.trim();
-            
-        } catch (error) {
-            chatBox.innerText = "The connection is flickering. Please try again.";
-        }
-    }
-</script>
-
-</body>
-</html>
+            <div
