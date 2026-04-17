@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Red Bot Files</title>
+    <style>
+        body { background: #1a1a1a; color: #d4d4d4; font-family: 'Georgia', serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; }
+        .container { max-width: 600px; width: 90%; margin-top: 50px; }
+        h1 { color: #b30000; text-align: center; font-size: 2.5rem; letter-spacing: 2px; }
+        #chat-box { height: 400px; overflow-y: auto; border: 1px solid #333; padding: 20px; background: #000; margin-bottom: 20px; display: flex; flex-direction: column; }
+        .msg { margin-bottom: 15px; line-height: 1.6; }
+        .user { color: #888; text-align: right; }
+        .bot { color: #d4d4d4; border-left: 2px solid #b30000; padding-left: 10px; }
+        input { width: 100%; padding: 15px; background: #222; border: 1px solid #444; color: white; box-sizing: border-box; font-family: 'Georgia', serif; }
+        .loading { font-style: italic; color: #555; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>THE RED BOT FILES</h1>
+        <div id="chat-box">
+            <div class="msg bot">Ask me a question, and I shall look into the archives for you...</div>
+        </div>
+        <input type="text" id="user-input" placeholder="Type your question here..." onkeypress="handleKey(event)">
+    </div>
+
+    <script>
+        async function handleKey(e) {
+            if (e.key === 'Enter') {
+                const input = document.getElementById('user-input');
+                const chat = document.getElementById('chat-box');
+                const val = input.value;
+                if (!val) return;
+
+                // Add User Message
+                chat.innerHTML += `<div class="msg user">${val}</div>`;
+                input.value = '';
+                
+                // Add Loading State
+                const loadingId = "load-" + Date.now();
+                chat.innerHTML += `<div class="msg bot loading" id="${loadingId}">The bot is reflecting...</div>`;
+                chat.scrollTop = chat.scrollHeight;
+
+                try {
+                    // WE WILL CONNECT THIS TO VERCEL IN THE NEXT STEP
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        body: JSON.stringify({ question: val })
+                    });
+                    const data = await response.json();
+                    document.getElementById(loadingId).remove();
+                    chat.innerHTML += `<div class="msg bot">${data.answer}</div>`;
+                } catch (err) {
+                    document.getElementById(loadingId).innerText = "The connection to the archive was lost.";
+                }
+                chat.scrollTop = chat.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>
