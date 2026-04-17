@@ -4,84 +4,124 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Red Bot Files</title>
+    <link href="https://fonts.googleapis.com/css2?family=Garamond:wght@400;700&family=IM+Fell+DW+Pica&display=swap" rel="stylesheet">
     <style>
         body {
-            background-color: #000;
-            color: #f4f4f4;
-            font-family: 'Georgia', serif;
+            /* Cream/Light Beige background from original */
+            background-color: #F4F1EA;
+            /* Dark Crimson/Dried Blood Red text color from original */
+            color: #8B1D20;
+            font-family: 'Garamond', serif; /* Elegant serif font */
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             min-height: 100vh;
             margin: 0;
             padding: 20px;
-            line-height: 1.6;
+            line-height: 1.8;
+            letter-spacing: 1px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            width: 100%;
+        }
+
+        .logo {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        h1 {
+            /* Matching 'The Red Bot Files' to 'The Red Hand Files' style */
+            font-family: 'IM Fell DW Pica', serif; /* Typewriter-like serif */
+            font-weight: normal;
+            font-size: 2.2rem;
+            text-transform: capitalize;
+            letter-spacing: 2px;
+            margin: 0 0 10px 0;
+        }
+
+        /* Simplified nav links mirroring the original */
+        .nav-links {
+            font-size: 0.8rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .nav-links span {
+            margin: 0 10px;
+            display: inline-block;
         }
 
         .container {
             max-width: 600px;
             width: 100%;
-            text-align: center;
-        }
-
-        h1 {
-            font-size: 2rem;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            border-bottom: 1px solid #333;
-            padding-bottom: 20px;
-            margin-bottom: 40px;
-        }
-
-        #chat-box {
-            margin-top: 30px;
             text-align: left;
-            min-height: 200px;
         }
 
         textarea {
             width: 100%;
             background: transparent;
-            border: 1px solid #333;
-            color: white;
+            /* Thin dark crimson border */
+            border: 1px solid #C4A79A; /* A lighter crimson-beige for a subtle border */
+            color: inherit;
             padding: 15px;
             font-family: inherit;
             font-size: 1.1rem;
             margin-bottom: 20px;
             outline: none;
             resize: none;
+            font-style: italic; /* Textarea input is italic like a letter */
+        }
+
+        textarea::placeholder {
+            color: #C4A79A;
+            opacity: 1;
         }
 
         button {
-            background: transparent;
-            color: #888;
-            border: 1px solid #444;
+            background: #8B1D20; /* Dark Crimson background */
+            color: #F4F1EA; /* Cream text */
+            border: none;
             padding: 10px 30px;
             cursor: pointer;
             text-transform: uppercase;
             letter-spacing: 2px;
             transition: 0.3s;
+            font-weight: bold;
+            display: inline-block;
         }
 
         button:hover {
-            color: white;
-            border-color: white;
+            opacity: 0.8;
         }
 
         .response {
             margin-top: 40px;
             font-style: italic;
-            color: #ccc;
+            color: #444; /* Dark gray for AI text */
             white-space: pre-wrap;
+            border-top: 1px solid #C4A79A;
+            padding-top: 30px;
         }
     </style>
 </head>
 <body>
 
+<div class="header">
+    <div class="logo">🦾</div> <h1>The Red Bot Files</h1>
+    <div class="nav-links">
+        <span>The Files</span> / <span>About</span> / <span>Ask the Bot</span>
+    </div>
+</div>
+
 <div class="container">
-    <h1>The Red Bot Files</h1>
-    <textarea id="question" rows="4" placeholder="Ask me a question..."></textarea>
+    <textarea id="question" rows="4" placeholder="Type your letter here..."></textarea>
     <br>
     <button onclick="askBot()">Submit</button>
     <div id="chat-box" class="response"></div>
@@ -101,6 +141,9 @@
         
         const data = await response.json();
         chatBox.innerText = data.answer;
+        
+        // Clear the box after submission for the next letter
+        document.getElementById('question').value = '';
     }
 </script>
 
