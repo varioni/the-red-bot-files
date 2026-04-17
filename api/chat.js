@@ -5,7 +5,6 @@ export default async function handler(req, res) {
 
     let archiveMemory = "";
 
-    // 1. Fetch from Astra
     try {
       const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/json/v1/default_keyspace/archives`;
       const astraRes = await fetch(astraUrl, {
@@ -19,14 +18,13 @@ export default async function handler(req, res) {
       }
     } catch (e) { console.error("Astra error:", e); }
 
-    // 2. Generate the Answer
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { role: "system", content: "You are the Red Bot. Answer in the poetic, somber style of Nick Cave. Use this archive: " + archiveMemory.substring(0, 5000) },
+          { role: "system", content: "You are the Red Bot. Answer in the poetic style of Nick Cave. Use this archive: " + archiveMemory.substring(0, 5000) },
           { role: "user", content: userQuestion }
         ]
       })
@@ -34,21 +32,20 @@ export default async function handler(req, res) {
     const data = await groqResponse.json();
     const aiAnswer = data?.choices?.[0]?.message?.content || "The AI is silent.";
 
-    // 3. Generate a Visual Theme (STRICT VERSION)
     const themeRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
-        messages: [{ role: "user", content: `Provide ONLY 3 descriptive words for an artistic photograph based on this question: "${userQuestion}". No conversation, just the words.` }]
+        messages: [{ role: "user", content: `Provide ONLY 3 descriptive words for a melancholic photo based on this: "${userQuestion}". No intro.` }]
       })
     });
     const themeData = await themeRes.json();
-    const theme = themeData?.choices?.[0]?.message?.content?.replace(/[^a-zA-Z ]/g, "") || "solitude";
+    const theme = themeData?.choices?.[0]?.message?.content?.replace(/[^a-zA-Z ]/g, "") || "shadows";
 
     res.status(200).json({ 
         answer: aiAnswer, 
-        imagePrompt: `A grainy vintage melancholic polaroid of ${theme}, muted colors, artistic lighting`
+        imagePrompt: `grainy vintage polaroid of ${theme}, muted colors, cinematic lighting`
     });
 
   } catch (err) {
