@@ -4,135 +4,135 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Red Bot Files</title>
-    <link href="https://fonts.googleapis.com/css2?family=Garamond:wght@400;700&family=IM+Fell+DW+Pica&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap?v=2" rel="stylesheet">
     <style>
         body {
-            /* Cream/Light Beige background from original */
-            background-color: #F4F1EA;
-            /* Dark Crimson/Dried Blood Red text color from original */
-            color: #8B1D20;
-            font-family: 'Garamond', serif; /* Elegant serif font */
+            background-color: #F4F1EA !important; /* Creamy paper color */
+            color: #8B1D20 !important; /* Deep red text */
+            font-family: 'EB Garamond', serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
             margin: 0;
-            padding: 20px;
-            line-height: 1.8;
-            letter-spacing: 1px;
+            padding: 50px 20px;
+            letter-spacing: 0.5px;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 50px;
-            width: 100%;
+            margin-bottom: 60px;
         }
 
+        /* Our "Bot Hand" Logo */
         .logo {
-            font-size: 5rem;
-            margin-bottom: 20px;
-            display: inline-block;
+            width: 80px;
+            filter: sepia(1) saturate(5) hue-rotate(-50deg); /* Makes the emoji look like a red stamp */
+            font-size: 60px;
+            margin-bottom: 15px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         h1 {
-            /* Matching 'The Red Bot Files' to 'The Red Hand Files' style */
-            font-family: 'IM Fell DW Pica', serif; /* Typewriter-like serif */
-            font-weight: normal;
-            font-size: 2.2rem;
-            text-transform: capitalize;
-            letter-spacing: 2px;
-            margin: 0 0 10px 0;
-        }
-
-        /* Simplified nav links mirroring the original */
-        .nav-links {
-            font-size: 0.8rem;
-            letter-spacing: 3px;
+            font-family: 'IM Fell DW Pica', serif;
+            font-size: 2.8rem;
             text-transform: uppercase;
-            font-weight: 700;
+            margin: 10px 0;
+            font-weight: normal;
         }
 
-        .nav-links span {
-            margin: 0 10px;
-            display: inline-block;
+        .nav {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            border-bottom: 1px solid #D9D4C7;
+            padding-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            margin-bottom: 50px;
         }
 
         .container {
-            max-width: 600px;
+            max-width: 700px;
             width: 100%;
-            text-align: left;
         }
 
         textarea {
             width: 100%;
             background: transparent;
-            /* Thin dark crimson border */
-            border: 1px solid #C4A79A; /* A lighter crimson-beige for a subtle border */
-            color: inherit;
-            padding: 15px;
-            font-family: inherit;
-            font-size: 1.1rem;
+            border: none;
+            border-bottom: 1px solid #D9D4C7;
+            font-family: 'EB Garamond', serif;
+            font-size: 1.3rem;
+            font-style: italic;
+            color: #222; /* Question text is darker for contrast */
+            padding: 10px 0;
             margin-bottom: 20px;
             outline: none;
             resize: none;
-            font-style: italic; /* Textarea input is italic like a letter */
-        }
-
-        textarea::placeholder {
-            color: #C4A79A;
-            opacity: 1;
         }
 
         button {
-            background: #8B1D20; /* Dark Crimson background */
-            color: #F4F1EA; /* Cream text */
-            border: none;
-            padding: 10px 30px;
-            cursor: pointer;
+            background: transparent;
+            color: #8B1D20;
+            border: 1px solid #8B1D20;
+            padding: 8px 25px;
+            font-family: 'EB Garamond', serif;
             text-transform: uppercase;
             letter-spacing: 2px;
+            cursor: pointer;
             transition: 0.3s;
-            font-weight: bold;
-            display: inline-block;
         }
 
         button:hover {
-            opacity: 0.8;
+            background: #8B1D20;
+            color: #F4F1EA;
         }
 
         .response {
-            margin-top: 40px;
-            font-style: italic;
-            color: #444; /* Dark gray for AI text */
+            margin-top: 60px;
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #222;
             white-space: pre-wrap;
-            border-top: 1px solid #C4A79A;
-            padding-top: 30px;
+        }
+
+        /* Small debug text at bottom */
+        .debug-footer {
+            margin-top: 100px;
+            font-size: 0.7rem;
+            color: #A9A497;
+            text-transform: uppercase;
         }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div class="logo">🦾</div> <h1>The Red Bot Files</h1>
-    <div class="nav-links">
-        <span>The Files</span> / <span>About</span> / <span>Ask the Bot</span>
+    <div class="header">
+        <span class="logo">🦾</span>
+        <h1>The Red Bot Files</h1>
     </div>
-</div>
 
-<div class="container">
-    <textarea id="question" rows="4" placeholder="Type your letter here..."></textarea>
-    <br>
-    <button onclick="askBot()">Submit</button>
-    <div id="chat-box" class="response"></div>
-</div>
+    <div class="nav">
+        THE FILES &nbsp; / &nbsp; ABOUT &nbsp; / &nbsp; ASK A QUESTION
+    </div>
+
+    <div class="container">
+        <textarea id="question" rows="3" placeholder="Write your question here..."></textarea>
+        <button onclick="askBot()">Submit</button>
+        <div id="chat-box" class="response"></div>
+        <div id="debug" class="debug-footer"></div>
+    </div>
 
 <script>
     async function askBot() {
         const question = document.getElementById('question').value;
         const chatBox = document.getElementById('chat-box');
+        const debug = document.getElementById('debug');
         
-        chatBox.innerText = "Reflecting...";
+        chatBox.innerText = "...";
         
         const response = await fetch('/api/chat', {
             method: 'POST',
@@ -140,9 +140,12 @@
         });
         
         const data = await response.json();
-        chatBox.innerText = data.answer;
         
-        // Clear the box after submission for the next letter
+        // Split the answer and the debug info
+        const parts = data.answer.split("--- DEBUG:");
+        chatBox.innerText = parts[0];
+        if (parts[1]) debug.innerText = "Archive Status: " + parts[1];
+        
         document.getElementById('question').value = '';
     }
 </script>
