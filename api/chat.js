@@ -3,7 +3,7 @@ export default async function handler(req, res) {
         const { question } = JSON.parse(req.body);
 
         // 1. Fetch from Astra using the simplest search
-        const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/rest/v2/namespaces/default_keyspace/collections/archives/rows`;
+        const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/rest/v2/namespaces/default_keyspace/collections/archives`;
 
         const astraResponse = await fetch(astraUrl, {
             method: 'GET',
