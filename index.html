@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Red Bot Files</title>
-    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=EB+Garamond:ital,wght=0,400..800;1,400..800&display=swap" rel="stylesheet">
+    
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%238B1D20%22><path d=%22M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z%22/></svg>">
+
+    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <style>
         body {
             background-color: #F4F1EA;
@@ -46,7 +49,7 @@
         }
 
         .container {
-            max-width: 700px; /* Kept focused to prevent full-width text which can be hard to read */
+            max-width: 700px;
             width: 100%;
         }
 
@@ -92,13 +95,12 @@
             white-space: pre-wrap;
         }
 
-        /* SIMPLIFIED FULL WIDTH RESPONSE AREA */
         .response {
             margin-top: 20px;
             font-size: 1.25rem;
             line-height: 1.9;
             color: #111;
-            white-space: pre-wrap; /* Keeps paragraphs intact */
+            white-space: pre-wrap;
         }
 
         .footer {
@@ -111,6 +113,11 @@
             border-top: 1px solid #D9D4C7;
             padding-top: 40px;
             font-style: italic;
+        }
+
+        .footer a {
+            color: inherit;
+            text-decoration: underline;
         }
 
         .credit {
@@ -144,7 +151,7 @@
     </div>
 
     <div class="footer">
-        This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for The Red Hand Files. The responses generated here are the product of a machine and are in no way affiliated with, authorized, or endorsed by Nick Cave.
+        This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for <a href="https://www.theredhandfiles.com" target="_blank">The Red Hand Files</a>. The responses generated here are the product of a machine and are in no way affiliated with, authorized, or endorsed by Nick Cave.
         <span class="credit">Engineered by varioni</span>
     </div>
 
@@ -157,28 +164,5 @@
         
         if (!questionText.trim()) return;
 
-        // Reset the conversation view
         displayQuestion.innerText = questionText;
-        chatBox.innerText = "...";
-        questionInput.value = '';
-
-        try {
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question: questionText })
-            });
-            
-            const data = await response.json();
-            // We split only by DEBUG, removing any lingering imagePrompt logic
-            const finalAnswer = data.answer.split("--- DEBUG:")[0].trim();
-            chatBox.innerText = finalAnswer;
-            
-        } catch (error) {
-            chatBox.innerText = "A silence has fallen over the archive.";
-        }
-    }
-</script>
-
-</body>
-</html>
+        chatBox.innerText = "...
