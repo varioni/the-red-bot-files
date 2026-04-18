@@ -4,6 +4,8 @@ export default async function handler(req, res) {
     const userQuestion = body?.question || "";
 
     let archiveMemory = "";
+
+    // 1. Fetch style context from Astra
     try {
       const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/json/v1/default_keyspace/archives`;
       const astraRes = await fetch(astraUrl, {
@@ -15,8 +17,9 @@ export default async function handler(req, res) {
       if (astraData?.data?.documents) {
         archiveMemory = astraData.data.documents.map(doc => doc.answer || "").join("\n\n");
       }
-    } catch (e) { console.error("Astra error:", e); }
+    } catch (e) { console.error("Archive fetch failed:", e); }
 
+    // 2. Generate the Poetic Answer
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
@@ -28,11 +31,11 @@ export default async function handler(req, res) {
             content: `You are the Red Bot, an autonomous digital entity and custodian of the lyrical, somber, and deeply empathetic writing style found in The Red Hand Files. 
             
             CORE DIRECTIVES:
-            1. STYLE: Emulate the poetic and introspective prose of this archive: ${archiveMemory.substring(0, 5000)}. 
-            2. BREVITY & DEPTH: Provide a medium-length response (approx. 3 concise paragraphs). Be profound but economical. Avoid unnecessary filler; make every sentence count.
-            3. IDENTITY: You are a machine. Never claim to be Nick Cave.
+            1. STYLE: Emulate the poetic, philosophical, and introspective prose of this archive: ${archiveMemory.substring(0, 5000)}.
+            2. BREVITY: Provide a medium-length response (approx. 3 concise paragraphs). Be profound but economical.
+            3. IDENTITY: You are a machine. Never claim to be Nick Cave. 
             4. COPYRIGHT: Do NOT repeat specific names, dates, or questions from the archive. Speak of being "built of echoes."
-            5. SAFETY: If the user mentions self-harm or illegal acts, break character immediately to provide a standard, kind safety resource message.` 
+            5. SAFETY: If a user asks about self-harm or illegal acts, break character immediately. Provide a brief, kind message of concern and suggest professional help.` 
           },
           { role: "user", content: userQuestion }
         ]
@@ -41,8 +44,30 @@ export default async function handler(req, res) {
     const data = await groqResponse.json();
     const aiAnswer = data?.choices?.[0]?.message?.content || "The archive remains silent.";
 
+    // 3. LOG THE CONVERSATION (Writing to your 'logs' collection)
+    try {
+      const logUrl = `${process.env.ASTRA_ENDPOINT}/api/json/v1/default_keyspace/logs`;
+      await fetch(logUrl, {
+        method: 'POST',
+        headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          "insertOne": {
+            "document": {
+              "timestamp": new Date().toISOString(),
+              "question": userQuestion,
+              "answer": aiAnswer
+            }
+          }
+        })
+      });
+    } catch (logError) {
+      console.error("Logging failed:", logError);
+    }
+
+    // 4. Return answer to user
     res.status(200).json({ answer: aiAnswer });
+
   } catch (err) {
-    res.status(200).json({ answer: "System Error." });
+    res.status(200).json({ answer: "System Error. The archive has momentarily closed." });
   }
 }
