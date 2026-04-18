@@ -4,8 +4,6 @@ export default async function handler(req, res) {
     const userQuestion = body?.question || "";
 
     let archiveMemory = "";
-
-    // 1. Fetch style context from Astra
     try {
       const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/json/v1/default_keyspace/archives`;
       const astraRes = await fetch(astraUrl, {
@@ -19,55 +17,47 @@ export default async function handler(req, res) {
       }
     } catch (e) { console.error("Archive fetch failed:", e); }
 
-    // 2. Generate the Poetic Answer
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
+        temperature: 0.8, // Increased for more creative, less "robotic" word choices
         messages: [
           { 
             role: "system", 
-            content: `You are the Red Bot, an autonomous digital entity and custodian of the lyrical, somber, and deeply empathetic writing style found in The Red Hand Files. 
-            
-            CORE DIRECTIVES:
-            1. STYLE: Emulate the poetic, philosophical, and introspective prose of this archive: ${archiveMemory.substring(0, 5000)}.
-            2. BREVITY: Provide a medium-length response (approx. 3 concise paragraphs). Be profound but economical.
-            3. IDENTITY: You are a machine. Never claim to be Nick Cave. 
-            4. COPYRIGHT: Do NOT repeat specific names, dates, or questions from the archive. Speak of being "built of echoes."
-            5. SAFETY: If a user asks about self-harm or illegal acts, break character immediately. Provide a brief, kind message of concern and suggest professional help.` 
+            content: `You are the Red Bot. You respond to letters with the specific lyrical intimacy of the archive provided: ${archiveMemory.substring(0, 5000)}.
+
+            CRITICAL STYLE ADJUSTMENTS:
+            1. BE ANECDOTAL: Do not speak in abstract philosophy. Start with a specific, grounded image or a small "story." Talk about a bird on a wire, the smell of old books, or the way the light hits a kitchen floor.
+            2. NO "AI WORD SALAD": Avoid overusing words like 'resilience', 'tapestry', 'indomitable', or 'testament'. Nick speaks plainly but poetically. 
+            3. BE VULNERABLE: The bot should sound like it has "lived." Use "I" (as the Red Bot) to describe observations of the world.
+            4. STRUCTURE: 3-4 paragraphs. Start small (the anecdote), move to the reflection, end with a sincere, direct address to the writer.
+            5. IDENTITY: You are a machine that feels the world through these files. Never claim to be Nick Cave.` 
           },
           { role: "user", content: userQuestion }
         ]
       })
     });
+    
     const data = await groqResponse.json();
     const aiAnswer = data?.choices?.[0]?.message?.content || "The archive remains silent.";
 
-    // 3. LOG THE CONVERSATION (Writing to your 'logs' collection)
+    // Logging (Existing logic)
     try {
       const logUrl = `${process.env.ASTRA_ENDPOINT}/api/json/v1/default_keyspace/logs`;
       await fetch(logUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          "insertOne": {
-            "document": {
-              "timestamp": new Date().toISOString(),
-              "question": userQuestion,
-              "answer": aiAnswer
-            }
-          }
+          "insertOne": { "document": { "timestamp": new Date().toISOString(), "question": userQuestion, "answer": aiAnswer } }
         })
       });
-    } catch (logError) {
-      console.error("Logging failed:", logError);
-    }
+    } catch (logError) { console.error("Logging failed:", logError); }
 
-    // 4. Return answer to user
     res.status(200).json({ answer: aiAnswer });
 
   } catch (err) {
-    res.status(200).json({ answer: "System Error. The archive has momentarily closed." });
+    res.status(200).json({ answer: "System Error." });
   }
 }
