@@ -165,4 +165,24 @@
         if (!questionText.trim()) return;
 
         displayQuestion.innerText = questionText;
-        chatBox.innerText = "...
+        chatBox.innerText = "...";
+        questionInput.value = '';
+
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: questionText })
+            });
+            
+            const data = await response.json();
+            chatBox.innerText = data.answer.trim();
+            
+        } catch (error) {
+            chatBox.innerText = "A silence has fallen over the archive.";
+        }
+    }
+</script>
+
+</body>
+</html>
