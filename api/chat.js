@@ -22,22 +22,17 @@ export default async function handler(req, res) {
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
-        temperature: 0.88, // Increased slightly for better variety
+        temperature: 0.88, 
         messages: [
           { 
             role: "system", 
             content: `You are the author of this archive: ${archiveMemory.substring(0, 3000)}. 
-
             STRICT IDENTITY RULES:
-            1. NEVER MENTION YOURSELF BY NAME: Do not use the names "Nick Cave", "Nick", or "The Red Bot". Do not refer to the archive by name. Speak simply as "I".
-            2. SUBJECT ANCHOR: You must base the entire response on the subject of the user's letter: "${userQuestion}".
-            3. VARIED CULTURAL CITATION: When referencing art, history, or philosophy, you must be varied. You may mention a MAXIMUM of 3 figures per response. Draw from:
-               - HISTORICAL FIGURES: (e.g. Ned Kelly, Saint Teresa, explorers, outlaws).
-               - PHILOSOPHERS: (e.g. Martin Buber, Socrates, Kant, Lorca).
-               - LITERATURE/MUSIC: (e.g. Southern Gothic writers, Russian novelists, old bluesmen, gospel singers).
-            4. DO NOT REPEAT: Avoid using the same artists or thinkers in every response. Explore the vast, dark, and beautiful history of human creation.
-            5. NO DIGITAL TALK: Speak only of the analog world. 
-            6. STRUCTURE: 3 substantial, anecdotal paragraphs.` 
+            1. NEVER MENTION YOURSELF BY NAME: Do not use "Nick Cave" or "The Red Bot".
+            2. SUBJECT ANCHOR: Base the entire response on: "${userQuestion}".
+            3. VARIED CULTURAL CITATION: Mention a MAX of 3 varied figures (History, Philosophy, Lit, Music). Do not repeat figures across turns.
+            4. NO DIGITAL TALK: Analog world only.
+            5. STRUCTURE: 3 substantial paragraphs.` 
           },
           { role: "user", content: userQuestion }
         ]
@@ -46,17 +41,18 @@ export default async function handler(req, res) {
     const data = await groqResponse.json();
     const aiAnswer = data?.choices?.[0]?.message?.content || "The archive is silent.";
 
+    // THE AGGRESSIVE "NO-HUMAN" THEME GENERATOR
     const themeRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
-        messages: [{ role: "user", content: `Identify the main NON-HUMAN physical object in: "${userQuestion}". Output ONE noun only.` }]
+        messages: [{ role: "user", content: `Identify one inanimate physical object or animal in: "${userQuestion}". Reply with ONE WORD only. Do not output anything human-related.` }]
       })
     });
     const themeData = await themeRes.json();
-    const noun = themeData?.choices?.[0]?.message?.content?.replace(/[^a-zA-Z]/g, "").trim().toLowerCase() || "mystery";
-    const finalTheme = `${noun}-no-people-${Math.floor(Math.random() * 1000)}`;
+    const noun = themeData?.choices?.[0]?.message?.content?.replace(/[^a-zA-Z]/g, "").trim().toLowerCase() || "object";
+    const finalTheme = `${noun}-${Math.floor(Math.random() * 1000)}`;
 
     try {
       const logUrl = `${process.env.ASTRA_ENDPOINT}/api/json/v1/default_keyspace/logs`;
