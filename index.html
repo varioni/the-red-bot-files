@@ -16,7 +16,7 @@
         textarea { width: 100%; background: transparent; border: none; border-bottom: 1px solid #D9D4C7; font-family: 'EB Garamond', serif; font-size: 1.3rem; font-style: italic; color: #444; padding: 10px 0; outline: none; resize: none; text-align: center; }
         button { background: transparent; color: #8B1D20; border: 1px solid #8B1D20; padding: 10px 30px; margin-top: 20px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; }
         button:hover { background: #8B1D20; color: #F4F1EA; }
-        .user-question-display { font-weight: 700; font-size: 1.4rem; color: #8B1D20; text-align: center; margin: 40px 0; white-space: pre-wrap; display: block; }
+        .user-question-display { font-weight: 700; font-size: 1.4rem; color: #8B1D20; text-align: center; margin: 40px 0; white-space: pre-wrap; display: block; font-style: normal; }
         .content-wrapper { display: grid; grid-template-columns: 350px 1fr; gap: 50px; margin-top: 20px; align-items: flex-start; text-align: left; }
         .polaroid { background: #fff; padding: 15px 15px 60px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transform: rotate(-1.5deg); display: none; }
         .polaroid img { width: 100%; height: 320px; object-fit: cover; filter: sepia(0.3) contrast(1.1) brightness(0.9) grayscale(0.2); }
@@ -73,16 +73,25 @@
             chatBox.innerText = data.answer;
 
             if (data.imageTheme) {
-                const parts = data.imageTheme.split('-');
-                const searchTerm = parts[0];
-                const sig = parts[parts.length - 1];
+                // Parse out the theme and random seed
+                const themeParts = data.imageTheme.split('-');
+                const noun = themeParts[0];
+                const sig = themeParts[themeParts.length - 1];
                 
-                // Aggressive "Still Life" search to avoid people
-                photoImg.src = `https://source.unsplash.com/featured/400x400?${searchTerm},still-life,dark,abstract&sig=${sig}`;
+                // Clear the previous image before loading new one
+                photoImg.src = "";
                 
-                photoImg.onload = () => { photoFrame.style.display = 'block'; };
+                // Construct stable featured URL
+                const imageUrl = `https://source.unsplash.com/featured/400x400?${noun},dark,still-life&sig=${sig}`;
+                photoImg.src = imageUrl;
+                
+                photoImg.onload = () => { 
+                    photoFrame.style.display = 'block'; 
+                };
+                
                 photoImg.onerror = () => {
-                    photoImg.src = `https://loremflickr.com/400/400/${searchTerm},dark,abstract/all`;
+                    photoImg.src = `https://loremflickr.com/400/400/${noun},dark/all`;
+                    photoFrame.style.display = 'block';
                 };
             }
         } catch (e) { chatBox.innerText = "The archive is silent."; }
