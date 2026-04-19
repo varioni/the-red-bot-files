@@ -17,8 +17,9 @@
         button { background: transparent; color: #8B1D20; border: 1px solid #8B1D20; padding: 10px 30px; margin-top: 20px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; }
         button:hover { background: #8B1D20; color: #F4F1EA; }
         
-        .user-question-display { font-weight: 700; font-size: 1.4rem; color: #8B1D20; text-align: center; margin: 40px 0; white-space: pre-wrap; display: block; }
+        .user-question-display { font-weight: 700; font-size: 1.4rem; color: #8B1D20; text-align: center; margin: 40px 0; white-space: pre-wrap; display: block; font-style: normal; }
         
+        /* GRID: 350px left for image, 1fr (remainder) for text */
         .content-wrapper { display: grid; grid-template-columns: 350px 1fr; gap: 50px; margin-top: 20px; align-items: flex-start; text-align: left; }
         
         .polaroid { background: #fff; padding: 15px 15px 60px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transform: rotate(-1.5deg); display: none; }
@@ -49,7 +50,7 @@
         </div>
     </div>
     <div class="footer">
-       This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for <a href="https://www.theredhandfiles.com" target="_blank" style="color: inherit;">The Red Hand Files</a>.
+        Part tribute, part parody, created to honor the creative genius of Nick Cave and his writings for <a href="https://www.theredhandfiles.com" target="_blank" style="color: inherit;">The Red Hand Files</a>.
         <span class="credit">Made with ❤️ by varioni</span>
     </div>
 
@@ -78,10 +79,19 @@
             chatBox.innerText = data.answer;
 
             if (data.imageTheme) {
-                // FIXED: Use a more reliable Unsplash endpoint with cache-busting
-                const seed = Math.floor(Math.random() * 99999);
-                photoImg.src = `https://images.unsplash.com/photo-1511367461989-f85a21fda167?auto=format&fit=crop&w=400&q=80&sig=${seed}&q=${encodeURIComponent(data.imageTheme)}`;
+                // Split the 'noun-ID' back out
+                const searchTerm = data.imageTheme.split('-')[0];
+                const sig = data.imageTheme.split('-')[1];
+                
+                // Use the random sig to force Unsplash to refresh its search result
+                photoImg.src = `https://source.unsplash.com/featured/400x400?${searchTerm},dark,moody&sig=${sig}`;
+                
                 photoImg.onload = () => { photoFrame.style.display = 'block'; };
+                
+                // Backup if Unsplash blocks the request
+                photoImg.onerror = () => {
+                    photoImg.src = `https://loremflickr.com/400/400/${searchTerm},dark/all`;
+                };
             }
         } catch (e) { chatBox.innerText = "The archive is silent."; }
     }
