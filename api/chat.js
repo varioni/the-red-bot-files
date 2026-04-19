@@ -42,7 +42,6 @@ export default async function handler(req, res) {
     const data = await groqResponse.json();
     const aiAnswer = data?.choices?.[0]?.message?.content || "The archive is silent.";
 
-    // IMAGE THEME
     const themeRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
@@ -55,10 +54,9 @@ export default async function handler(req, res) {
     const noun = themeData?.choices?.[0]?.message?.content?.replace(/[^a-zA-Z]/g, "").trim().toLowerCase() || "mystery";
     const finalTheme = `${noun}-no-people-${Math.floor(Math.random() * 1000)}`;
 
-    // --- CRITICAL LOGGING FIX: WE NOW AWAIT THE FETCH ---
     try {
       const logUrl = `${process.env.ASTRA_ENDPOINT}/api/json/v1/default_keyspace/logs`;
-      const logResponse = await fetch(logUrl, { // Added 'await' here
+      await fetch(logUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -71,14 +69,8 @@ export default async function handler(req, res) {
           }
         })
       });
-      if (!logResponse.ok) {
-        console.error("Astra rejected the log:", await logResponse.text());
-      }
-    } catch (logError) { 
-      console.error("Logging failed during execution:", logError); 
-    }
+    } catch (logError) { console.error("Log failed:", logError); }
 
-    // Now it's safe to send the response to the user
     res.status(200).json({ answer: aiAnswer, imageTheme: finalTheme });
 
   } catch (err) {
