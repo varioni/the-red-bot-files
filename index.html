@@ -17,15 +17,15 @@
         button { background: transparent; color: #8B1D20; border: 1px solid #8B1D20; padding: 10px 30px; margin-top: 20px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; }
         button:hover { background: #8B1D20; color: #F4F1EA; }
 
-        /* THE GRID LAYOUT */
-        .content-wrapper { display: grid; grid-template-columns: 350px 1fr; gap: 50px; margin-top: 60px; align-items: flex-start; }
+        .user-question-display { font-weight: 700; font-size: 1.4rem; color: #8B1D20; text-align: center; margin-bottom: 40px; line-height: 1.4; white-space: pre-wrap; font-style: normal; }
         
-        /* THE POLAROID LOOK */
+        .content-wrapper { display: grid; grid-template-columns: 350px 1fr; gap: 50px; margin-top: 20px; align-items: flex-start; }
+        
         .polaroid { 
             background: #fff; padding: 15px 15px 60px 15px; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             transform: rotate(-1.5deg);
-            display: none; /* Hidden until image loads */
+            display: none;
         }
         .polaroid img { 
             width: 100%; height: 320px; object-fit: cover;
@@ -46,11 +46,15 @@
     <div class="container">
         <textarea id="question-input" rows="2" placeholder="Write your letter here..."></textarea>
         <div style="text-align: center;"><button onclick="askBot()">Submit</button></div>
-        <div class="content-wrapper">
-            <div id="photo-frame" class="polaroid">
-                <img id="photo-img" src="">
+        
+        <div id="output-area" style="margin-top: 60px;">
+            <div id="display-question" class="user-question-display"></div>
+            <div class="content-wrapper">
+                <div id="photo-frame" class="polaroid">
+                    <img id="photo-img" src="">
+                </div>
+                <div id="chat-box" class="response"></div>
             </div>
-            <div id="chat-box" class="response"></div>
         </div>
     </div>
     <div class="footer">
@@ -61,26 +65,31 @@
 <script>
     async function askBot() {
         const input = document.getElementById('question-input');
+        const displayQuestion = document.getElementById('display-question');
         const chatBox = document.getElementById('chat-box');
         const photoFrame = document.getElementById('photo-frame');
         const photoImg = document.getElementById('photo-img');
-        if (!input.value.trim()) return;
+        
+        const qText = input.value.trim();
+        if (!qText) return;
 
+        // Visual Reset
+        displayQuestion.innerText = qText;
         chatBox.innerText = "...";
         photoFrame.style.display = 'none';
+        input.value = '';
 
         try {
             const res = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question: input.value })
+                body: JSON.stringify({ question: qText })
             });
             const data = await res.json();
             chatBox.innerText = data.answer;
 
             if (data.imageTheme) {
-                // Use Unsplash via a reliable proxy that won't block the request
-                const query = encodeURIComponent(data.imageTheme + " melancholic dark");
+                const query = encodeURIComponent(data.imageTheme + " melancholic moody");
                 photoImg.src = `https://images.unsplash.com/photo-1501139083538-0139583c060f?auto=format&fit=crop&w=600&q=80&sig=${Math.random()}&q=${query}`;
                 photoImg.onload = () => { photoFrame.style.display = 'block'; };
             }
