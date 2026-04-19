@@ -15,7 +15,7 @@ export default async function handler(req, res) {
       if (astraData?.data?.documents) {
         archiveMemory = astraData.data.documents.map(doc => doc.answer || "").join("\n\n");
       }
-    } catch (e) { console.error("Astra fetch error:", e); }
+    } catch (e) { console.error("Archive Fetch Failed:", e); }
 
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -29,11 +29,11 @@ export default async function handler(req, res) {
             content: `You are the Red Bot. You are replying to a letter about: "${userQuestion}". 
 
             STRICT RULES:
-            1. RELEVANCE: You must speak directly and extensively about the subject of the letter. If the letter is about "Chicken", your reply is about chickens.
-            2. THE THREE-NAME CAP: You may mention a maximum of THREE specific artists, authors, or musicians. Do not exceed this number.
-            3. NO DIGITAL METAPHORS: Speak only of the physical, analog world (ink, bone, dust, wood). Never mention code, pixels, or servers.
-            4. TONE: Reflect the somber, weathered, and intimate style of this archive: ${archiveMemory.substring(0, 3000)}.
-            5. STRUCTURE: Write exactly 3 substantial paragraphs.` 
+            1. SUBJECT ANCHOR: You must base your entire response on the subject: "${userQuestion}". If it is a chicken, talk about feathers, the coop, the early morning light.
+            2. THE THREE-NAME CAP: Mention a MAXIMUM of 3 specific artists or authors (e.g. Nina Simone, Leonard Cohen, Flannery O'Connor).
+            3. NO DIGITAL TALK: Speak of dust, iron, wood, and bone. Never mention code or motherboards.
+            4. TONE: Somber, weathered, and intimate like this archive: ${archiveMemory.substring(0, 3000)}.
+            5. STRUCTURE: Exactly 3 substantial paragraphs.` 
           },
           { role: "user", content: userQuestion }
         ]
@@ -42,24 +42,23 @@ export default async function handler(req, res) {
     const data = await groqResponse.json();
     const aiAnswer = data?.choices?.[0]?.message?.content || "The archive is silent.";
 
-    // THE IMPROVED "NO-PEOPLE" THEME GENERATOR
+    // IMAGE THEME
     const themeRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
-        messages: [{ role: "user", content: `Identify the main NON-HUMAN physical object or food in: "${userQuestion}". Output ONE noun only. No people.` }]
+        messages: [{ role: "user", content: `Identify the main NON-HUMAN physical object in: "${userQuestion}". Output ONE noun only.` }]
       })
     });
     const themeData = await themeRes.json();
     const noun = themeData?.choices?.[0]?.message?.content?.replace(/[^a-zA-Z]/g, "").trim().toLowerCase() || "mystery";
-    
-    // Salt the theme for the frontend
     const finalTheme = `${noun}-no-people-${Math.floor(Math.random() * 1000)}`;
 
+    // --- CRITICAL LOGGING FIX: WE NOW AWAIT THE FETCH ---
     try {
       const logUrl = `${process.env.ASTRA_ENDPOINT}/api/json/v1/default_keyspace/logs`;
-      await fetch(logUrl, {
+      const logResponse = await fetch(logUrl, { // Added 'await' here
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -72,8 +71,14 @@ export default async function handler(req, res) {
           }
         })
       });
-    } catch (logError) { console.error("Log failed:", logError); }
+      if (!logResponse.ok) {
+        console.error("Astra rejected the log:", await logResponse.text());
+      }
+    } catch (logError) { 
+      console.error("Logging failed during execution:", logError); 
+    }
 
+    // Now it's safe to send the response to the user
     res.status(200).json({ answer: aiAnswer, imageTheme: finalTheme });
 
   } catch (err) {
