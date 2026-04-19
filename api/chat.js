@@ -15,7 +15,7 @@ export default async function handler(req, res) {
       if (astraData?.data?.documents) {
         archiveMemory = astraData.data.documents.map(doc => doc.answer || "").join("\n\n");
       }
-    } catch (e) { console.error("Astra fetch error:", e); }
+    } catch (e) { console.error("Astra error:", e); }
 
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -35,6 +35,7 @@ export default async function handler(req, res) {
     const data = await groqResponse.json();
     const aiAnswer = data?.choices?.[0]?.message?.content || "The archive is silent.";
 
+    // THE THEME GENERATOR - ADDING RANDOMNESS
     const themeRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
@@ -44,9 +45,12 @@ export default async function handler(req, res) {
       })
     });
     const themeData = await themeRes.json();
-    const photoSearch = themeData?.choices?.[0]?.message?.content?.replace(/[^a-zA-Z]/g, "").trim().toLowerCase() || "shadow";
+    const noun = themeData?.choices?.[0]?.message?.content?.replace(/[^a-zA-Z]/g, "").trim().toLowerCase() || "object";
+    
+    // Salt the theme to bypass Unsplash rate-limiting/blocking
+    const finalTheme = `${noun}-${Math.floor(Math.random() * 1000)}`;
 
-    // --- LOGGING ---
+    // LOGGING
     try {
       const logUrl = `${process.env.ASTRA_ENDPOINT}/api/json/v1/default_keyspace/logs`;
       await fetch(logUrl, {
@@ -64,7 +68,7 @@ export default async function handler(req, res) {
       });
     } catch (logError) { console.error("Log failed:", logError); }
 
-    res.status(200).json({ answer: aiAnswer, imageTheme: photoSearch });
+    res.status(200).json({ answer: aiAnswer, imageTheme: finalTheme });
 
   } catch (err) {
     res.status(200).json({ answer: "System Error." });
