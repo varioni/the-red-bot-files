@@ -39,17 +39,17 @@ export default async function handler(req, res) {
     const data = await groqResponse.json();
     const aiAnswer = data?.choices?.[0]?.message?.content || "The archive is silent.";
 
-    // THE THEME GENERATOR: Pick 1 simple word for a photo
+    // THE LITERAL THEME GENERATOR
     const themeRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
-        messages: [{ role: "user", content: `Give me exactly ONE noun representing a visual object from this question: "${userQuestion}". One word only.` }]
+        messages: [{ role: "user", content: `Identify the main physical object or food item in this question: "${userQuestion}". Output only the single noun. No philosophy.` }]
       })
     });
     const themeData = await themeRes.json();
-    const photoSearch = themeData?.choices?.[0]?.message?.content?.replace(/[^a-zA-Z]/g, "") || "shadow";
+    const photoSearch = themeData?.choices?.[0]?.message?.content?.replace(/[^a-zA-Z]/g, "").trim() || "object";
 
     res.status(200).json({ answer: aiAnswer, imageTheme: photoSearch });
   } catch (err) {
