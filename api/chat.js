@@ -28,12 +28,12 @@ export default async function handler(req, res) {
             role: "system", 
             content: `You are the Red Bot. You are replying to a letter about: "${userQuestion}". 
 
-            CORE DIRECTIVES:
-            1. ENGAGE THE SUBJECT: The entire response must be anchored in the subject of the letter. If they write about a "Chicken", your anecdote and reflection must involve a chicken. 
-            2. NAME DROPPING: You may mention a maximum of TWO specific artists, authors, or musicians (e.g. PJ Harvey or Flannery O'Connor). Do not exceed this.
-            3. PHYSICAL WORLD: Use sensory, physical imagery (dirt, feathers, wood, wind, bone). No digital or computer-related metaphors.
-            4. TONE: Reflect the somber, deeply empathetic, and slightly weathered style of this archive: ${archiveMemory.substring(0, 3500)}.
-            5. STRUCTURE: Write exactly 3 developed paragraphs. Maintain the length of a formal letter.` 
+            STRICT RULES:
+            1. RELEVANCE: You must speak directly and extensively about the subject of the letter. If the letter is about "Chicken", your reply is about chickens.
+            2. THE THREE-NAME CAP: You may mention a maximum of THREE specific artists, authors, or musicians. Do not exceed this number.
+            3. NO DIGITAL METAPHORS: Speak only of the physical, analog world (ink, bone, dust, wood). Never mention code, pixels, or servers.
+            4. TONE: Reflect the somber, weathered, and intimate style of this archive: ${archiveMemory.substring(0, 3000)}.
+            5. STRUCTURE: Write exactly 3 substantial paragraphs.` 
           },
           { role: "user", content: userQuestion }
         ]
@@ -42,17 +42,20 @@ export default async function handler(req, res) {
     const data = await groqResponse.json();
     const aiAnswer = data?.choices?.[0]?.message?.content || "The archive is silent.";
 
+    // THE IMPROVED "NO-PEOPLE" THEME GENERATOR
     const themeRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
-        messages: [{ role: "user", content: `Identify the main physical object in: "${userQuestion}". Output ONE noun only.` }]
+        messages: [{ role: "user", content: `Identify the main NON-HUMAN physical object or food in: "${userQuestion}". Output ONE noun only. No people.` }]
       })
     });
     const themeData = await themeRes.json();
-    const noun = themeData?.choices?.[0]?.message?.content?.replace(/[^a-zA-Z]/g, "").trim().toLowerCase() || "object";
-    const finalTheme = `${noun}-${Math.floor(Math.random() * 1000)}`;
+    const noun = themeData?.choices?.[0]?.message?.content?.replace(/[^a-zA-Z]/g, "").trim().toLowerCase() || "mystery";
+    
+    // Salt the theme for the frontend
+    const finalTheme = `${noun}-no-people-${Math.floor(Math.random() * 1000)}`;
 
     try {
       const logUrl = `${process.env.ASTRA_ENDPOINT}/api/json/v1/default_keyspace/logs`;
