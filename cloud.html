@@ -8,18 +8,29 @@
     <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <style>
         body { background-color: #F4F1EA; color: #8B1D20; font-family: 'EB Garamond', serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 60px 20px; }
-        .header { text-align: center; margin-bottom: 20px; }
-        .logo-svg { width: 60px; fill: #8B1D20; margin-bottom: 10px; }
-        h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.5rem; text-transform: uppercase; margin: 0; }
         
-        .sub-nav { margin-bottom: 40px; font-style: italic; letter-spacing: 1px; }
-        .sub-nav a { color: #8B1D20; text-decoration: none; margin: 0 15px; opacity: 0.7; transition: opacity 0.3s; }
-        .sub-nav a:hover { opacity: 1; text-decoration: underline; }
-        .sub-nav .active { opacity: 1; font-weight: bold; text-decoration: none !important; cursor: default; }
+        .header { text-align: center; margin-bottom: 5px; }
+        .logo-svg { width: 45px; fill: #8B1D20; margin-bottom: 10px; }
+        h1 { font-family: 'EB Garamond', serif; font-size: 3.5rem; font-weight: 800; margin: 0; letter-spacing: -1px; }
+        
+        .nav-container { 
+            margin-top: 25px; 
+            text-transform: uppercase; 
+            letter-spacing: 3px; 
+            font-size: 0.85rem; 
+            font-weight: 500; 
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .nav-container a, .nav-container span { color: #8B1D20; text-decoration: none; transition: opacity 0.3s; }
+        .nav-container .separator { color: #8B1D20; font-weight: 300; opacity: 0.6; }
+        .nav-container a:hover { opacity: 0.5; }
+        .nav-container .active { font-weight: 800; }
 
-        .divider { width: 100%; max-width: 800px; border-bottom: 1px solid #D9D4C7; margin: 20px 0 40px 0; }
+        .divider { width: 100%; max-width: 1000px; border-bottom: 1px solid #D9D4C7; margin: 25px 0 60px 0; }
         
-        h2 { font-family: 'IM Fell DW Pica', serif; font-size: 2rem; margin-top: 20px; }
+        h2 { font-family: 'IM Fell DW Pica', serif; font-size: 2.2rem; margin-top: 20px; text-transform: none; }
         p.subtitle { font-style: italic; margin-bottom: 40px; opacity: 0.8; }
 
         #cloud { max-width: 850px; margin: 20px auto; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 20px; padding: 20px; }
@@ -27,7 +38,6 @@
         .word:hover { color: #000; transform: scale(1.15); }
 
         .footer { margin-top: 100px; text-align: center; font-size: 0.85rem; color: #A9A497; border-top: 1px solid #D9D4C7; padding-top: 40px; font-style: italic; line-height: 1.6; }
-        .credit { display: block; margin-top: 15px; font-style: normal; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #8B1D20; }
     </style>
 </head>
 <body>
@@ -36,9 +46,10 @@
         <h1>The Red Bot Files</h1>
     </div>
 
-    <nav class="sub-nav">
-        <a href="/">Ask me Anything</a> | 
-        <span class="active">Look Yonder</span>
+    <nav class="nav-container">
+        <a href="/">ASK ME ANYTHING</a>
+        <span class="separator">/</span>
+        <span class="active">LOOK YONDER</span>
     </nav>
 
     <div class="divider"></div>
@@ -49,8 +60,7 @@
     <div id="cloud">Loading the ghosts of questions...</div>
 
     <div class="footer">
-        This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for <a href="https://www.theredhandfiles.com" target="_blank" style="color: inherit; text-decoration: underline;">The Red Hand Files</a>.
-        <span class="credit">Made with ❤️ by varioni</span>
+        This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for The Red Hand Files.
     </div>
 
     <script>
