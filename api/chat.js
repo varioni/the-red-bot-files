@@ -7,9 +7,7 @@ export default async function handler(req, res) {
     const isSafe = (text) => {
         const toxicPhrases = ["child porn", "snuff", "hate speech", "cp"];
         const profanityRegex = /\b(f[u|*|v|k|x|0|.]*k|sh[i|!|1|t|.]*t|p[o|0]*rn|c[u|v]*nt|n[i|!|1]gg[e|a]r|f[a|@]*gg[o|0]*t)\b/i;
-        const hasToxicPhrase = toxicPhrases.some(p => text.toLowerCase().includes(p));
-        const hasProfanity = profanityRegex.test(text);
-        return !hasToxicPhrase && !hasProfanity;
+        return !toxicPhrases.some(p => text.toLowerCase().includes(p)) && !profanityRegex.test(text);
     };
 
     let archiveMemory = "";
@@ -40,17 +38,18 @@ export default async function handler(req, res) {
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
-        temperature: 0.88,
+        temperature: 0.82, // Slightly lower for more grounded, less "airy" prose
         messages: [
           { 
             role: "system", 
-            content: `You are the author of this archive: ${archiveMemory.substring(0, 4500)}. 
-            STRICT IDENTITY RULES:
-            1. IDENTITY: Never mention "Nick Cave" or "The Red Bot". Speak only as "I".
-            2. SUBJECT: Base the entire response on the user's inquiry: "${userQuestion}".
-            3. CULTURE: Mention a MAX of 3 varied figures (History, Philosophy, Lit, Music). Do not repeat names across responses.
-            4. TONE: Somber, empathetic, and analog.
-            5. STRUCTURE: 3 substantial paragraphs.` 
+            content: `You are the haunted author of this archive: ${archiveMemory.substring(0, 4000)}. 
+            
+            STYLE GUIDELINES:
+            - IDENTITY: Speak as "I". Never mention the archive or the bot.
+            - TONE: Gothic, somber, world-weary, and profoundly analog.
+            - PROSE: Avoid AI transition phrases (e.g., "As I ponder", "And yet"). Write with the weight of someone sitting in a dark room at 3 AM. Use fragments and vivid, earthy metaphors (blood, ink, dust, bone).
+            - FIGURES: You may mention 1-2 historical/literary figures if they feel essential, but do not force them. Prioritize emotional weight over intellectual listing.
+            - STRUCTURE: 3 paragraphs of varying length. Be visceral. Give the user a piece of yourself, even if it's broken.` 
           },
           { role: "user", content: userQuestion }
         ]
@@ -60,18 +59,20 @@ export default async function handler(req, res) {
     const data = await groqResponse.json();
     const aiAnswer = data?.choices?.[0]?.message?.content || "The archive is silent.";
 
+    // BULLETPROOF NOUN GENERATOR
     const themeRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
-        messages: [{ role: "user", content: `Identify one inanimate physical object or animal in: "${userQuestion}". One noun only. No humans.` }]
+        messages: [{ role: "user", content: `Identify one specific object or animal in: "${userQuestion}". Output ONLY the noun. No sentences. No punctuation.` }]
       })
     });
     const themeData = await themeRes.json();
-    const noun = themeData?.choices?.[0]?.message?.content?.replace(/[^a-zA-Z]/g, "").trim().toLowerCase() || "mystery";
+    let rawNoun = themeData?.choices?.[0]?.message?.content || "mystery";
+    const noun = rawNoun.trim().split(/\s+/).pop().replace(/[^a-zA-Z]/g, "").toLowerCase();
 
-    // 2. CONDITIONAL LOGGING (Only log if safe)
+    // CONDITIONAL LOGGING
     if (isSafe(userQuestion)) {
       try {
         const logUrl = `${process.env.ASTRA_ENDPOINT}/api/json/v1/default_keyspace/logs`;
