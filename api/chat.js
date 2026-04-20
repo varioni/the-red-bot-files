@@ -15,7 +15,7 @@ export default async function handler(req, res) {
       const astraRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ "find": { "options": { "limit": 10 } } }) // Increased limit slightly for better context
+        body: JSON.stringify({ "find": { "options": { "limit": 10 } } })
       });
       const astraData = await astraRes.json();
       if (astraData?.data?.documents) {
@@ -28,23 +28,23 @@ export default async function handler(req, res) {
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
-        temperature: 0.85, 
+        temperature: 0.82,
         messages: [
           { 
             role: "system", 
-            content: `You are the voice of this archive: ${archiveMemory.substring(0, 4200)}. 
+            content: `You are the anonymous author of this archive: ${archiveMemory.substring(0, 4200)}. 
             
-            THE MISSION: 
-            The user has sent you a letter. Do not merely answer it; commune with it. Find the sacred within the profane.
-
+            STRICT IDENTITY RULES:
+            - IDENTITY: Speak as "I". You are a nameless seeker.
+            - THE FORBIDDEN: NEVER mention the name "Nick", "Cave", "The Bad Seeds", or "The Red Hand Files". If asked who you are, speak of your soul or your observations, not your name or career.
+            
             STYLE GUIDELINES:
-            - VOICE: Speak as "I". You are a soulful, aging poet writing from a place of deep empathy and hard-won wisdom.
-            - THE PIEVOT: Do not answer the question literally. Use it as a seed to discuss a memory, a piece of art, or a spiritual truth. 
-            - NO REPETITION: Never start multiple sentences with the same phrase (e.g., avoid "I hate...", "The...").
-            - LANGUAGE: Use visceral, analog imagery—dusty pianos, salt air, broken bibles, the smell of rain on hot asphalt. Avoid generic "gothic" cliches.
-            - FIGURES: Mention 1-2 cultural ghosts (writers, saints, musicians, painters) but weave them into the narrative naturally, as if they are old friends.
-            - TONE: World-weary but fiercely compassionate. Even in the dark, you are looking for the light.
-            - STRUCTURE: 3 paragraphs of varying rhythm and length. End with a sense of shared human burden.` 
+            - TONE: Gothic, Poetic, world-weary, and profoundly analog.
+            - THE PIVOT: Do not answer the question literally. Use it as a seed to discuss a memory, a piece of art, or a spiritual truth. 
+            - PROSE: Avoid AI transitions (e.g., "As I ponder", "And yet"). Use fragments and vivid, earthy metaphors (salt, ink, bone, rain).
+            - FIGURES: You may mention 2-3 historical/literary figures naturally, as if they are old friends.
+            - BEHAVIOR: Do not summarize the archive or tell the user you are "searching through files." Just speak from that collective wisdom.
+            - STRUCTURE: 3 paragraphs of varying length. Be visceral.` 
           },
           { role: "user", content: userQuestion }
         ]
@@ -54,7 +54,6 @@ export default async function handler(req, res) {
     const data = await groqResponse.json();
     const aiAnswer = data?.choices?.[0]?.message?.content || "The archive is silent.";
 
-    // BULLETPROOF NOUN GENERATOR
     const themeRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
@@ -62,10 +61,14 @@ export default async function handler(req, res) {
         model: "llama-3.1-8b-instant",
         messages: [{ role: "user", content: `Identify one specific object or animal in: "${userQuestion}". Output ONLY the noun. No sentences.` }]
       })
-    });
-    const themeData = await themeRes.json();
-    let rawNoun = themeData?.choices?.[0]?.message?.content || "mystery";
-    const noun = rawNoun.trim().split(/\s+/).pop().replace(/[^a-zA-Z]/g, "").toLowerCase();
+    }).catch(() => null);
+
+    let noun = "mystery";
+    if (themeRes) {
+      const themeData = await themeRes.json();
+      let rawNoun = themeData?.choices?.[0]?.message?.content || "mystery";
+      noun = rawNoun.trim().split(/\s+/).pop().replace(/[^a-zA-Z]/g, "").toLowerCase();
+    }
 
     if (isSafe(userQuestion)) {
       try {
