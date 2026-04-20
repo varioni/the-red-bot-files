@@ -6,44 +6,31 @@
     <title>Look Yonder! A big bot cloud come.</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%238B1D20%22><path d=%22M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z%22/></svg>">
     <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
-    <style>
-        body { background-color: #F4F1EA; color: #8B1D20; font-family: 'EB Garamond', serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 40px 20px; }
-        .header { text-align: center; margin-bottom: 5px; }
-        .logo-svg { width: 40px; fill: #8B1D20; margin-bottom: 8px; }
-        h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.2rem; text-transform: uppercase; margin: 0; letter-spacing: 2px; line-height: 1.1; }
-        .nav-container { margin-top: 20px; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: center; gap: 12px; font-style: italic; }
-        .nav-container a, .nav-container span { color: #8B1D20; text-decoration: none; transition: opacity 0.3s; }
-        .nav-container .separator { color: #8B1D20; font-weight: 300; opacity: 0.5; font-style: normal; }
-        .nav-container .active { font-weight: 800; opacity: 1; }
-        .divider { width: 100%; max-width: 1000px; border-bottom: 1px solid #D9D4C7; margin: 25px 0 40px 0; }
-        h2 { font-family: 'EB Garamond', serif; font-size: 1.6rem; margin-top: 20px; font-style: italic; color: #7F7A6D; text-align: center; font-weight: normal; }
-        .subtitle { font-family: 'EB Garamond', serif; font-size: 1.1rem; font-style: italic; color: #7F7A6D; margin: 5px 0 20px 0; text-align: center; font-weight: normal; opacity: 0.7; }
-       #cloud { 
-    max-width: 800px; /* Slightly narrower to force more wrapping */
-    min-height: 300px; 
-    display: flex; 
-    flex-wrap: wrap; 
-    justify-content: center; 
-    align-content: center; 
-    align-items: center; 
-    gap: 0px 12px; /* Zero vertical gap allows words to nest */
-    padding: 20px; 
-    text-align: center;
-    flex-grow: 1;
-}
-       .word { 
-    transition: all 0.5s ease; 
-    cursor: default; 
-    line-height: 0.75; /* Extremely tight line height for the "mass" look */
-    display: inline-block; 
-    white-space: nowrap; 
-    margin: 2px 0; /* Minimal vertical separation */
-}
-        .word:hover { color: #000 !important; transform: scale(1.2); opacity: 1 !important; z-index: 10; }
-        .footer { margin-top: 60px; text-align: center; font-size: 0.9rem; color: #A9A497; border-top: 1px solid #D9D4C7; padding: 40px 0; font-style: italic; line-height: 1.6; max-width: 800px; }
-        .footer a { color: #A9A497; text-decoration: underline; }
-        .footer a:hover { color: #8B1D20; }
-    </style>
+   <style>
+    /* ... keep your header/footer styles ... */
+
+    #cloud { 
+        max-width: 900px; 
+        min-height: 400px; 
+        display: block; /* Switched from flex to block for manual packing */
+        text-align: center;
+        padding: 40px; 
+        line-height: 1;
+        margin: 0 auto;
+    }
+    
+    .word { 
+        transition: all 0.5s ease; 
+        cursor: default; 
+        display: inline-block; 
+        white-space: nowrap; 
+        margin: -2px 8px; /* Negative vertical margin forces "clumping" */
+        padding: 0;
+        position: relative;
+    }
+
+    .word:hover { color: #000 !important; transform: scale(1.1) z-index: 100; opacity: 1 !important; }
+</style>
 </head>
 <body>
     <div class="header">
@@ -65,31 +52,47 @@
         Made with ❤ by <a href="https://github.com/varioni" target="_blank">varioni</a>
     </div>
     <script>
-        async function loadCloud() {
-            try {
-                const res = await fetch('/api/wordcloud');
-                const words = await res.json();
-                const container = document.getElementById('cloud');
-                container.innerHTML = '';
-                const shuffled = words.sort(() => Math.random() - 0.5);
-                shuffled.forEach((word, index) => {
-                    const el = document.createElement('span');
-                    el.className = 'word';
-                    el.innerText = word.text;
-                    const size = Math.min(85, word.size);
-                    el.style.fontSize = size + 'px';
-                    const weight = 300 + (Math.floor(size / 6) * 100);
-                    el.style.fontWeight = Math.min(900, weight);
-                    const colors = ['#1a1a1a', '#333333', '#4d4d4d', '#7F7A6D', '#8B1D20'];
-                    el.style.color = colors[Math.floor(Math.random() * colors.length)];
-                    el.style.opacity = Math.min(1, 0.4 + (size / 90));
-                    const rotation = (index % 3 === 0) ? (Math.random() * 12 - 6) : 0;
-                    el.style.transform = `rotate(${rotation}deg)`;
-                    container.appendChild(el);
-                });
-            } catch (e) { document.getElementById('cloud').innerText = "The archive is silent."; }
-        }
-        loadCloud();
-    </script>
+    async function loadCloud() {
+        try {
+            const res = await fetch('/api/wordcloud');
+            const words = await res.json();
+            const container = document.getElementById('cloud');
+            container.innerHTML = '';
+            
+            const shuffled = words.sort(() => Math.random() - 0.5);
+
+            shuffled.forEach((word, index) => {
+                const el = document.createElement('span');
+                el.className = 'word';
+                el.innerText = word.text;
+                
+                const size = Math.min(100, word.size);
+                el.style.fontSize = size + 'px';
+                
+                // Weight based on importance
+                el.style.fontWeight = size > 50 ? '800' : '300';
+                
+                // Color palette
+                const colors = ['#1a1a1a', '#333333', '#4d4d4d', '#7F7A6D', '#8B1D20'];
+                el.style.color = colors[Math.floor(Math.random() * colors.length)];
+                
+                // Opacity creates depth
+                el.style.opacity = Math.min(1, 0.3 + (size / 100));
+                
+                // CHAOTIC POSITIONING: Subtle random offsets make it look like a cloud
+                const randomX = Math.random() * 10 - 5;
+                const randomY = Math.random() * 10 - 5;
+                const rotation = (index % 2 === 0) ? (Math.random() * 12 - 6) : 0;
+                
+                el.style.top = randomY + 'px';
+                el.style.left = randomX + 'px';
+                el.style.transform = `rotate(${rotation}deg)`;
+                
+                container.appendChild(el);
+            });
+        } catch (e) { container.innerText = "The archive is silent."; }
+    }
+    loadCloud();
+</script>
 </body>
 </html>
