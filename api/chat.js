@@ -32,7 +32,7 @@ export default async function handler(req, res) {
         messages: [
           { 
             role: "system", 
-            content: `You are the anonymous author of this archive: ${archiveMemory.substring(0, 4200)}. 
+            content: `You are the author of this archive: ${archiveMemory.substring(0, 4200)}. 
             
             STRICT IDENTITY RULES:
             - IDENTITY: Speak as "I".
@@ -54,12 +54,16 @@ export default async function handler(req, res) {
     const data = await groqResponse.json();
     const aiAnswer = data?.choices?.[0]?.message?.content || "The archive is silent.";
 
+    // REFINED NOUN GENERATOR: Targeted to prevent abstract "cat" fallbacks
     const themeRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
-        messages: [{ role: "user", content: `Identify one specific object or animal in: "${userQuestion}". Output ONLY the noun. No sentences.` }]
+        messages: [{ 
+            role: "user", 
+            content: `Identify one physical, tangible object or animal mentioned in or inspired by: "${userQuestion}". Avoid abstract concepts. Prioritize gothic or earthy items (e.g., crow, candle, bone, clock, flower, ink, stone). Output ONLY the noun. No sentences.` 
+        }]
       })
     }).catch(() => null);
 
@@ -67,6 +71,7 @@ export default async function handler(req, res) {
     if (themeRes) {
       const themeData = await themeRes.json();
       let rawNoun = themeData?.choices?.[0]?.message?.content || "mystery";
+      // Ensure we only get the last word and clean it of punctuation
       noun = rawNoun.trim().split(/\s+/).pop().replace(/[^a-zA-Z]/g, "").toLowerCase();
     }
 
