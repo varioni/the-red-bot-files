@@ -8,34 +8,24 @@
     <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <style>
         body { background-color: #F4F1EA; color: #8B1D20; font-family: 'EB Garamond', serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 40px 20px; }
-        
         .header { text-align: center; margin-bottom: 5px; }
         .logo-svg { width: 40px; fill: #8B1D20; margin-bottom: 8px; }
         h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.2rem; text-transform: uppercase; margin: 0; letter-spacing: 2px; line-height: 1.1; }
-        
         .nav-container { margin-top: 20px; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: center; gap: 12px; font-style: italic; }
         .nav-container a, .nav-container span { color: #8B1D20; text-decoration: none; transition: opacity 0.3s; }
         .nav-container .separator { color: #8B1D20; font-weight: 300; opacity: 0.5; font-style: normal; }
         .nav-container .active { font-weight: 800; opacity: 1; }
-
         .divider { width: 100%; max-width: 1000px; border-bottom: 1px solid #D9D4C7; margin: 25px 0 40px 0; }
-
         .container { max-width: 900px; width: 100%; }
         textarea { width: 100%; background: transparent; border: none; font-family: 'EB Garamond', serif; font-size: 1.6rem; font-style: italic; color: #7F7A6D; padding: 10px 0; outline: none; resize: none; text-align: center; }
         textarea::placeholder { color: #7F7A6D; }
-        
         button { background: transparent; color: #8B1D20; border: 1px solid #8B1D20; padding: 12px 45px; margin-top: 30px; cursor: pointer; text-transform: uppercase; letter-spacing: 3px; font-size: 0.85rem; }
         button:hover { background: #8B1D20; color: #F4F1EA; }
-
         .user-question-display { font-weight: 700; font-size: 1.4rem; color: #8B1D20; text-align: center; margin: 40px 0; white-space: pre-wrap; }
-        
-        /* Fixed Grid: align-items: start stops the polaroid from stretching */
         .content-wrapper { display: grid; grid-template-columns: 350px 1fr; gap: 50px; text-align: left; align-items: start; margin-bottom: 60px; }
-        
         .polaroid { background: #fff; padding: 15px 15px 60px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); transform: rotate(-1.5deg); display: none; box-sizing: border-box; }
         .polaroid img { width: 100%; height: auto; max-height: 350px; object-fit: cover; filter: sepia(0.3); }
         .response { font-size: 1.25rem; line-height: 1.8; color: #111; white-space: pre-wrap; }
-
         .footer { margin-top: 60px; text-align: center; font-size: 0.9rem; color: #A9A497; border-top: 1px solid #D9D4C7; padding: 40px 0; font-style: italic; line-height: 1.6; max-width: 800px; }
         .footer a { color: #A9A497; text-decoration: underline; }
         .footer a:hover { color: #8B1D20; }
