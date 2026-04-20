@@ -23,24 +23,11 @@
         h2 { font-family: 'EB Garamond', serif; font-size: 1.6rem; margin-top: 20px; font-style: italic; color: #7F7A6D; text-align: center; font-weight: normal; }
         .subtitle { font-family: 'EB Garamond', serif; font-size: 1.1rem; font-style: italic; color: #7F7A6D; margin: 5px 0 20px 0; text-align: center; font-weight: normal; opacity: 0.7; }
 
-        /* Adjusted for less white space */
-        #cloud { 
-            max-width: 950px; 
-            min-height: 250px; /* Reduced from 550px to bring footer up */
-            display: flex; 
-            flex-wrap: wrap; 
-            justify-content: center; 
-            align-content: center; 
-            align-items: center; 
-            gap: 2px 14px; 
-            padding: 20px; 
-            text-align: center;
-            flex-grow: 1; /* Allows it to push the footer down only as needed */
-        }
+        #cloud { max-width: 950px; min-height: 250px; display: flex; flex-wrap: wrap; justify-content: center; align-content: center; align-items: center; gap: 2px 14px; padding: 20px; text-align: center; flex-grow: 1; }
         .word { transition: all 0.5s ease; cursor: default; line-height: 0.8; display: inline-block; white-space: nowrap; }
         .word:hover { color: #000 !important; transform: scale(1.2); opacity: 1 !important; z-index: 10; }
 
-        .footer { margin-top: 40px; text-align: center; font-size: 0.8rem; color: #A9A497; border-top: 1px solid #D9D4C7; padding-top: 40px; font-style: italic; line-height: 1.6; max-width: 800px; padding-bottom: 40px; }
+        .footer { margin-top: 40px; text-align: center; font-size: 0.9rem; color: #A9A497; border-top: 1px solid #D9D4C7; padding: 40px 0; font-style: italic; line-height: 1.6; max-width: 800px; }
     </style>
 </head>
 <body>
@@ -56,13 +43,12 @@
     <div class="divider"></div>
     <h2>Look Yonder! A big bot cloud come.</h2>
     <div class="subtitle">Common themes found within the letters sent to the archive.</div>
-    
     <div id="cloud">Gathering the ghosts of words...</div>
-
     <div class="footer">
         This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for The Red Hand Files.
+        <br><br>
+        With love, by Varioni.
     </div>
-
     <script>
         async function loadCloud() {
             try {
@@ -70,28 +56,20 @@
                 const words = await res.json();
                 const container = document.getElementById('cloud');
                 container.innerHTML = '';
-                
                 const shuffled = words.sort(() => Math.random() - 0.5);
-
                 shuffled.forEach((word, index) => {
                     const el = document.createElement('span');
                     el.className = 'word';
                     el.innerText = word.text;
-                    
                     const size = Math.min(85, word.size);
                     el.style.fontSize = size + 'px';
-                    
                     const weight = 300 + (Math.floor(size / 6) * 100);
                     el.style.fontWeight = Math.min(900, weight);
-                    
                     const colors = ['#1a1a1a', '#333333', '#4d4d4d', '#7F7A6D', '#8B1D20'];
                     el.style.color = colors[Math.floor(Math.random() * colors.length)];
                     el.style.opacity = Math.min(1, 0.4 + (size / 90));
-                    el.style.letterSpacing = (size > 40) ? '-1px' : '0px';
-                    
                     const rotation = (index % 3 === 0) ? (Math.random() * 12 - 6) : 0;
                     el.style.transform = `rotate(${rotation}deg)`;
-                    
                     container.appendChild(el);
                 });
             } catch (e) { document.getElementById('cloud').innerText = "The archive is silent."; }
