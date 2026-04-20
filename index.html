@@ -59,4 +59,60 @@
     <nav class="nav-container">
         <span class="active">ASK ME ANYTHING</span>
         <span class="separator">/</span>
-        <a href="/cloud.html
+        <a href="/cloud.html">LOOK YONDER</a>
+    </nav>
+
+    <div class="divider"></div>
+
+    <div class="container">
+        <textarea id="question-input" rows="2" placeholder="Write your letter here..."></textarea>
+        <div style="text-align: center;"><button onclick="askBot()">SUBMIT</button></div>
+        <div id="output-area">
+            <div id="display-question" class="user-question-display"></div>
+            <div class="content-wrapper">
+                <div id="photo-frame" class="polaroid"><img id="photo-img" src=""></div>
+                <div id="chat-box" class="response"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for The Red Hand Files.
+    </div>
+
+<script>
+    async function askBot() {
+        const input = document.getElementById('question-input');
+        const displayQuestion = document.getElementById('display-question');
+        const chatBox = document.getElementById('chat-box');
+        const photoFrame = document.getElementById('photo-frame');
+        const photoImg = document.getElementById('photo-img');
+        const qText = input.value.trim();
+        if (!qText) return;
+
+        displayQuestion.innerText = qText;
+        chatBox.innerText = "...";
+        photoFrame.style.display = 'none';
+        input.value = '';
+
+        try {
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: qText })
+            });
+            const data = await res.json();
+            chatBox.innerText = data.answer;
+
+            if (data.imageTheme) {
+                const parts = data.imageTheme.split('-');
+                const noun = parts[0];
+                const sig = parts[parts.length - 1];
+                photoImg.src = `https://source.unsplash.com/featured/400x400?still-life,nature,${noun}&sig=${sig}`;
+                photoImg.onload = () => { photoFrame.style.display = 'block'; };
+            }
+        } catch (e) { chatBox.innerText = "The archive is silent."; }
+    }
+</script>
+</body>
+</html>
