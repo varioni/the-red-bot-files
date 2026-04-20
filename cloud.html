@@ -18,8 +18,27 @@
         .divider { width: 100%; max-width: 1000px; border-bottom: 1px solid #D9D4C7; margin: 25px 0 40px 0; }
         h2 { font-family: 'EB Garamond', serif; font-size: 1.6rem; margin-top: 20px; font-style: italic; color: #7F7A6D; text-align: center; font-weight: normal; }
         .subtitle { font-family: 'EB Garamond', serif; font-size: 1.1rem; font-style: italic; color: #7F7A6D; margin: 5px 0 20px 0; text-align: center; font-weight: normal; opacity: 0.7; }
-        #cloud { max-width: 950px; min-height: 250px; display: flex; flex-wrap: wrap; justify-content: center; align-content: center; align-items: center; gap: 2px 14px; padding: 20px; text-align: center; }
-        .word { transition: all 0.5s ease; cursor: default; line-height: 0.8; display: inline-block; white-space: nowrap; }
+       #cloud { 
+    max-width: 800px; /* Slightly narrower to force more wrapping */
+    min-height: 300px; 
+    display: flex; 
+    flex-wrap: wrap; 
+    justify-content: center; 
+    align-content: center; 
+    align-items: center; 
+    gap: 0px 12px; /* Zero vertical gap allows words to nest */
+    padding: 20px; 
+    text-align: center;
+    flex-grow: 1;
+}
+       .word { 
+    transition: all 0.5s ease; 
+    cursor: default; 
+    line-height: 0.75; /* Extremely tight line height for the "mass" look */
+    display: inline-block; 
+    white-space: nowrap; 
+    margin: 2px 0; /* Minimal vertical separation */
+}
         .word:hover { color: #000 !important; transform: scale(1.2); opacity: 1 !important; z-index: 10; }
         .footer { margin-top: 60px; text-align: center; font-size: 0.9rem; color: #A9A497; border-top: 1px solid #D9D4C7; padding: 40px 0; font-style: italic; line-height: 1.6; max-width: 800px; }
         .footer a { color: #A9A497; text-decoration: underline; }
