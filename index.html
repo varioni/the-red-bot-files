@@ -9,11 +9,12 @@
     <style>
         body { background-color: #F4F1EA; color: #8B1D20; font-family: 'EB Garamond', serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 60px 20px; }
         
-        /* Header & Navigation */
+        /* Header Styling from Screenshot */
         .header { text-align: center; margin-bottom: 5px; }
         .logo-svg { width: 45px; fill: #8B1D20; margin-bottom: 10px; }
-        h1 { font-family: 'EB Garamond', serif; font-size: 3.5rem; font-weight: 800; margin: 0; letter-spacing: -1px; }
+        h1 { font-family: 'IM Fell DW Pica', serif; font-size: 3rem; text-transform: uppercase; margin: 0; letter-spacing: 2px; }
         
+        /* Navigation with Slashes */
         .nav-container { 
             margin-top: 25px; 
             text-transform: uppercase; 
@@ -33,8 +34,10 @@
 
         /* Interface */
         .container { max-width: 900px; width: 100%; }
-        textarea { width: 100%; background: transparent; border: none; border-bottom: 1px solid #D9D4C7; font-family: 'EB Garamond', serif; font-size: 1.5rem; font-style: italic; color: #444; padding: 10px 0; outline: none; resize: none; text-align: center; }
-        button { background: transparent; color: #8B1D20; border: 1px solid #8B1D20; padding: 10px 40px; margin-top: 30px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; transition: all 0.3s ease; }
+        textarea { width: 100%; background: transparent; border: none; font-family: 'EB Garamond', serif; font-size: 1.6rem; font-style: italic; color: #7F7A6D; padding: 10px 0; outline: none; resize: none; text-align: center; }
+        textarea::placeholder { color: #7F7A6D; }
+        
+        button { background: transparent; color: #8B1D20; border: 1px solid #8B1D20; padding: 12px 45px; margin-top: 30px; cursor: pointer; text-transform: uppercase; letter-spacing: 3px; font-size: 0.9rem; transition: all 0.3s ease; }
         button:hover { background: #8B1D20; color: #F4F1EA; }
 
         .user-question-display { font-weight: 700; font-size: 1.4rem; color: #8B1D20; text-align: center; margin: 40px 0; white-space: pre-wrap; display: block; }
@@ -56,60 +59,4 @@
     <nav class="nav-container">
         <span class="active">ASK ME ANYTHING</span>
         <span class="separator">/</span>
-        <a href="/cloud.html">LOOK YONDER</a>
-    </nav>
-
-    <div class="divider"></div>
-
-    <div class="container">
-        <textarea id="question-input" rows="2" placeholder="Write your letter here..."></textarea>
-        <div style="text-align: center;"><button onclick="askBot()">Submit</button></div>
-        <div id="output-area">
-            <div id="display-question" class="user-question-display"></div>
-            <div class="content-wrapper">
-                <div id="photo-frame" class="polaroid"><img id="photo-img" src=""></div>
-                <div id="chat-box" class="response"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="footer">
-        This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for The Red Hand Files.
-    </div>
-
-<script>
-    async function askBot() {
-        const input = document.getElementById('question-input');
-        const displayQuestion = document.getElementById('display-question');
-        const chatBox = document.getElementById('chat-box');
-        const photoFrame = document.getElementById('photo-frame');
-        const photoImg = document.getElementById('photo-img');
-        const qText = input.value.trim();
-        if (!qText) return;
-
-        displayQuestion.innerText = qText;
-        chatBox.innerText = "...";
-        photoFrame.style.display = 'none';
-        input.value = '';
-
-        try {
-            const res = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question: qText })
-            });
-            const data = await res.json();
-            chatBox.innerText = data.answer;
-
-            if (data.imageTheme) {
-                const parts = data.imageTheme.split('-');
-                const noun = parts[0];
-                const sig = parts[parts.length - 1];
-                photoImg.src = `https://source.unsplash.com/featured/400x400?still-life,nature,${noun}&sig=${sig}`;
-                photoImg.onload = () => { photoFrame.style.display = 'block'; };
-            }
-        } catch (e) { chatBox.innerText = "The archive is silent."; }
-    }
-</script>
-</body>
-</html>
+        <a href="/cloud.html
