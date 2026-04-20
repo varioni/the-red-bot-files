@@ -4,68 +4,63 @@ export default async function handler(req, res) {
 
   try {
     const targetUrl = `https://www.theredhandfiles.com/page/${page}/`;
-    const response = await fetch(targetUrl);
+    const response = await fetch(targetUrl, {
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36" }
+    });
     const html = await response.text();
 
-    // 1. Find Issue links (e.g., issue-359 or feels-completely-meaningless)
+    // Find links that look like Issue pages
     const postLinks = [...html.matchAll(/href="(https:\/\/www\.theredhandfiles\.com\/[^"]+?\/)"/g)]
       .map(match => match[1])
       .filter((link, index, self) => 
         self.indexOf(link) === index && 
-        !link.includes('/page/') && 
-        link !== 'https://www.theredhandfiles.com/'
+        link.length > 40 && // Issue URLs are usually long
+        !link.includes('/page/')
       );
 
     const saved = [];
     for (const link of postLinks.slice(0, 3)) {
-      const postRes = await fetch(link);
+      const postRes = await fetch(link, {
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36" }
+      });
       const postHtml = await postRes.text();
 
-      // 2. Targeted Extraction based on your 'Inspect' data
-      const qBlock = postHtml.match(/<div class="post__title-block">([\s\S]*?)<\/div>/i);
-      const aBlock = postHtml.match(/<div class="article">([\s\S]*?)<p style="text-align: center;"><a href="\/ask-a-question"/i);
+      // NEW LOGIC: Just grab the first H1 and all paragraph text within the 'article' area
+      const h1Match = postHtml.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+      const articleMatch = postHtml.match(/<div class="article">([\s\S]*?)<div class="post__title-block">/i) || 
+                           postHtml.match(/<div class="article">([\s\S]*?)<p style="text-align: center;">/i);
 
-      if (qBlock && aBlock) {
-        // Clean Question: Strip Issue numbers and names, keep the core inquiry
-        let cleanQ = qBlock[1].replace(/<h2[\s\S]*?<\/h2>/gi, '') // Remove "Issue #359"
-                             .replace(/<h3[\s\S]*?<\/h3>/gi, '') // Remove User Name/Location
-                             .replace(/<[^>]*>?/gm, '')         // Strip remaining tags
-                             .trim();
+      if (h1Match && articleMatch) {
+        let cleanQ = h1Match[1].replace(/<[^>]*>?/gm, '').trim();
+        let cleanA = articleMatch[1].replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim();
 
-        // Clean Answer: Get all paragraph text
-        let cleanA = aBlock[1].replace(/<script[\s\S]*?<\/script>/gi, '') // Remove scripts
-                             .replace(/<style[\s\S]*?<\/style>/gi, '')   // Remove styles
-                             .replace(/<[^>]*>?/gm, '')                 // Strip all HTML tags
-                             .replace(/&nbsp;/g, ' ')
-                             .trim();
+        // Strip the standard "Dear..." and "Love, Nick"
+        cleanA = cleanA.replace(/^Dear .*?,/i, '').replace(/Love, Nick/i, '').trim();
 
-        // Optional: Remove standard salutations to keep the 'wisdom' dense
-        cleanA = cleanA.replace(/^Dear .*?,/i, '')
-                       .replace(/Love, Nick$/i, '')
-                       .trim();
-
-        const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/json/v1/default_keyspace/archives`;
-        await fetch(astraUrl, {
-          method: 'POST',
-          headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            "insertOne": {
-              "document": {
-                "url": link,
-                "question": cleanQ,
-                "answer": cleanA,
-                "source": "RedHandFiles_Official"
+        if (cleanQ.length > 5 && cleanA.length > 50) {
+          const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/json/v1/default_keyspace/archives`;
+          await fetch(astraUrl, {
+            method: 'POST',
+            headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              "insertOne": {
+                "document": {
+                  "url": link,
+                  "question": cleanQ,
+                  "answer": cleanA,
+                  "batch": "stealth_v3"
+                }
               }
-            }
-          })
-        });
-        saved.push(link);
+            })
+          });
+          saved.push(link);
+        }
       }
     }
 
     res.status(200).json({ 
       status: "success", 
-      scraped_count: saved.length, 
+      scraped: saved.length, 
       links: saved,
       next_page: parseInt(page) + 1 
     });
