@@ -4,35 +4,35 @@ export default async function handler(req, res) {
     const astraRes = await fetch(astraUrl, {
       method: 'POST',
       headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ "find": { "options": { "limit": 100 } } }) // Last 100 questions
+      body: JSON.stringify({ "find": { "options": { "limit": 200 } } }) 
     });
     const data = await astraRes.json();
     
     if (!data?.data?.documents) return res.status(200).json([]);
 
-    // 1. Combine all questions into one big string
     const allText = data.data.documents.map(d => d.question || "").join(" ").toLowerCase();
 
-    // 2. Filter out "Stop Words" (boring words)
-    const stopWords = new Set(["the", "a", "an", "and", "or", "but", "is", "are", "was", "were", "to", "of", "in", "for", "with", "on", "at", "by", "from", "up", "about", "into", "over", "after", "you", "your", "my", "i", "me", "how", "what", "why", "can", "do", "it"]);
-    
+    // 1. FILTER LISTS
+    const stopWords = new Set(["the", "and", "your", "what", "how", "with", "this", "that", "there", "from", "for", "are", "was", "not", "have", "you", "but", "about", "would"]);
+    const profanityFilter = /\b(fuck|shit|porn|cunt|nigger|faggot|rape|cp)\b/i;
+
     const words = allText.match(/\b\w+\b/g) || [];
     const counts = {};
 
     words.forEach(word => {
-      if (word.length > 2 && !stopWords.has(word)) {
+      // Logic: Allow words like "child" but block bad words and noise
+      if (word.length > 3 && !stopWords.has(word) && !profanityFilter.test(word)) {
         counts[word] = (counts[word] || 0) + 1;
       }
     });
 
-    // 3. Format for a word cloud library (array of {text, size})
     const cloudData = Object.keys(counts).map(word => ({
       text: word,
-      size: 10 + (counts[word] * 5) // Base size + frequency boost
-    })).sort((a, b) => b.size - a.size).slice(0, 50); // Top 50 words
+      size: 12 + (counts[word] * 5) 
+    })).sort((a, b) => b.size - a.size).slice(0, 50);
 
     res.status(200).json(cloudData);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json([]);
   }
 }
