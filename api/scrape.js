@@ -3,41 +3,51 @@ export default async function handler(req, res) {
   if (password !== "red-scrape-2026") return res.status(401).json({ error: "Unauthorized" });
 
   try {
+    // 1. Visit the archive index page (e.g., /page/2/)
     const targetUrl = `https://www.theredhandfiles.com/page/${page}/`;
     const response = await fetch(targetUrl, {
       headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36" }
     });
     const html = await response.text();
 
-    // Find links that look like Issue pages
-    const postLinks = [...html.matchAll(/href="(https:\/\/www\.theredhandfiles\.com\/[^"]+?\/)"/g)]
+    // 2. Extract specific article links (slugs) from the feed
+    // We look for links inside the "posts__article" structure
+    const postLinks = [...html.matchAll(/href="(https:\/\/www\.theredhandfiles\.com\/([^"\/]+?)\/)"/g)]
       .map(match => match[1])
       .filter((link, index, self) => 
         self.indexOf(link) === index && 
-        link.length > 40 && // Issue URLs are usually long
-        !link.includes('/page/')
+        link.length > 35 && 
+        !link.includes('/page/') &&
+        !link.includes('/about/') &&
+        !link.includes('/ask-a-question/')
       );
 
     const saved = [];
-    for (const link of postLinks.slice(0, 3)) {
+
+    // 3. Visit each found slug and extract data using the classes you found
+    for (const link of postLinks.slice(0, 4)) { // Batch of 4 to stay under 10s
       const postRes = await fetch(link, {
-        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36" }
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
       });
       const postHtml = await postRes.text();
 
-      // NEW LOGIC: Just grab the first H1 and all paragraph text within the 'article' area
-      const h1Match = postHtml.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
-      const articleMatch = postHtml.match(/<div class="article">([\s\S]*?)<div class="post__title-block">/i) || 
-                           postHtml.match(/<div class="article">([\s\S]*?)<p style="text-align: center;">/i);
+      // Use the selectors from your Inspect session
+      const titleBlock = postHtml.match(/<div class="post__title-block">([\s\S]*?)<\/div>/i);
+      const articleBody = postHtml.match(/<div class="article">([\s\S]*?)<p style="text-align: center;">/i);
 
-      if (h1Match && articleMatch) {
-        let cleanQ = h1Match[1].replace(/<[^>]*>?/gm, '').trim();
-        let cleanA = articleMatch[1].replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim();
+      if (titleBlock && articleBody) {
+        // Extract the actual H1 question
+        const qContent = titleBlock[1].match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+        let cleanQ = qContent ? qContent[1] : "";
+        
+        // Clean the answer text
+        let cleanA = articleBody[1].replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim();
+        
+        // Remove greetings/signatures
+        cleanA = cleanA.replace(/^Dear .*?,/i, '').replace(/Love, Nick$/i, '').trim();
+        cleanQ = cleanQ.replace(/<[^>]*>?/gm, '').trim();
 
-        // Strip the standard "Dear..." and "Love, Nick"
-        cleanA = cleanA.replace(/^Dear .*?,/i, '').replace(/Love, Nick/i, '').trim();
-
-        if (cleanQ.length > 5 && cleanA.length > 50) {
+        if (cleanQ && cleanA.length > 50) {
           const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/json/v1/default_keyspace/archives`;
           await fetch(astraUrl, {
             method: 'POST',
@@ -48,21 +58,21 @@ export default async function handler(req, res) {
                   "url": link,
                   "question": cleanQ,
                   "answer": cleanA,
-                  "batch": "stealth_v3"
+                  "scraped_at": new Date().toISOString()
                 }
               }
             })
           });
-          saved.push(link);
+          saved.push(link.split('/').filter(Boolean).pop()); // Just the slug name
         }
       }
     }
 
     res.status(200).json({ 
       status: "success", 
-      scraped: saved.length, 
-      links: saved,
-      next_page: parseInt(page) + 1 
+      scraped_count: saved.length, 
+      items: saved,
+      next_page_to_try: parseInt(page) + 1 
     });
 
   } catch (error) {
