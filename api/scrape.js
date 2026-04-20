@@ -1,40 +1,49 @@
 export default async function handler(req, res) {
-  // Simple security check so random people don't trigger your scraper
-  const { password } = req.query;
-  if (password !== "red-scrape-2026") {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
+  const { password, page = "1" } = req.query;
+  if (password !== "red-scrape-2026") return res.status(401).json({ error: "Unauthorized" });
 
   try {
-    // We'll scrape the 'Latest' page or you can pass a specific page number
-    const page = req.query.page || "1";
     const targetUrl = `https://www.theredhandfiles.com/page/${page}/`;
-    
     const response = await fetch(targetUrl);
     const html = await response.text();
 
-    // We use basic regex to find the links to individual posts
-    // This avoids needing heavy libraries like Cheerio in a tiny serverless function
+    // 1. Find Issue links (e.g., issue-359 or feels-completely-meaningless)
     const postLinks = [...html.matchAll(/href="(https:\/\/www\.theredhandfiles\.com\/[^"]+?\/)"/g)]
       .map(match => match[1])
-      .filter((link, index, self) => self.indexOf(link) === index && !link.includes('/page/'));
+      .filter((link, index, self) => 
+        self.indexOf(link) === index && 
+        !link.includes('/page/') && 
+        link !== 'https://www.theredhandfiles.com/'
+      );
 
-    // We will only process the first 3 links per request to stay under Vercel's 10s limit
-    const results = [];
+    const saved = [];
     for (const link of postLinks.slice(0, 3)) {
       const postRes = await fetch(link);
       const postHtml = await postRes.text();
 
-      // Extract Question and Answer using simple markers found in their site structure
-      // Note: This is a 'best-effort' extraction for serverless
-      const questionMatch = postHtml.match(/<div class="question-content">([\s\S]*?)<\/div>/);
-      const answerMatch = postHtml.match(/<div class="answer-content">([\s\S]*?)<\/div>/);
+      // 2. Targeted Extraction based on your 'Inspect' data
+      const qBlock = postHtml.match(/<div class="post__title-block">([\s\S]*?)<\/div>/i);
+      const aBlock = postHtml.match(/<div class="article">([\s\S]*?)<p style="text-align: center;"><a href="\/ask-a-question"/i);
 
-      if (questionMatch && answerMatch) {
-        const cleanQuestion = questionMatch[1].replace(/<[^>]*>?/gm, '').trim();
-        const cleanAnswer = answerMatch[1].replace(/<[^>]*>?/gm, '').trim();
+      if (qBlock && aBlock) {
+        // Clean Question: Strip Issue numbers and names, keep the core inquiry
+        let cleanQ = qBlock[1].replace(/<h2[\s\S]*?<\/h2>/gi, '') // Remove "Issue #359"
+                             .replace(/<h3[\s\S]*?<\/h3>/gi, '') // Remove User Name/Location
+                             .replace(/<[^>]*>?/gm, '')         // Strip remaining tags
+                             .trim();
 
-        // Save to Astra DB
+        // Clean Answer: Get all paragraph text
+        let cleanA = aBlock[1].replace(/<script[\s\S]*?<\/script>/gi, '') // Remove scripts
+                             .replace(/<style[\s\S]*?<\/style>/gi, '')   // Remove styles
+                             .replace(/<[^>]*>?/gm, '')                 // Strip all HTML tags
+                             .replace(/&nbsp;/g, ' ')
+                             .trim();
+
+        // Optional: Remove standard salutations to keep the 'wisdom' dense
+        cleanA = cleanA.replace(/^Dear .*?,/i, '')
+                       .replace(/Love, Nick$/i, '')
+                       .trim();
+
         const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/json/v1/default_keyspace/archives`;
         await fetch(astraUrl, {
           method: 'POST',
@@ -43,20 +52,22 @@ export default async function handler(req, res) {
             "insertOne": {
               "document": {
                 "url": link,
-                "question": cleanQuestion,
-                "answer": cleanAnswer
+                "question": cleanQ,
+                "answer": cleanA,
+                "source": "RedHandFiles_Official"
               }
             }
           })
         });
-        results.push(link);
+        saved.push(link);
       }
     }
 
     res.status(200).json({ 
-      message: `Scraped ${results.length} posts successfully.`,
-      links: results,
-      next_suggested_page: parseInt(page) + 1
+      status: "success", 
+      scraped_count: saved.length, 
+      links: saved,
+      next_page: parseInt(page) + 1 
     });
 
   } catch (error) {
