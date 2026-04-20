@@ -2,24 +2,56 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Look Yonder! A Big Bot Cloud Come</title>
-    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=EB+Garamond&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Look Yonder! A big bot cloud come.</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%238B1D20%22><path d=%22M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z%22/></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #F4F1EA; color: #8B1D20; font-family: 'EB Garamond', serif; text-align: center; padding: 50px; }
-        h1 { font-family: 'IM Fell DW Pica', serif; text-transform: uppercase; letter-spacing: 3px; }
-        #cloud { max-width: 800px; margin: 40px auto; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 15px; }
-        .word { transition: all 0.3s ease; cursor: default; }
-        .word:hover { color: #000; transform: scale(1.1); }
-        .back-link { margin-top: 50px; display: block; color: #8B1D20; text-decoration: none; font-style: italic; }
+        body { background-color: #F4F1EA; color: #8B1D20; font-family: 'EB Garamond', serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 60px 20px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .logo-svg { width: 60px; fill: #8B1D20; margin-bottom: 10px; }
+        h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.5rem; text-transform: uppercase; margin: 0; }
+        
+        .sub-nav { margin-bottom: 40px; font-style: italic; letter-spacing: 1px; }
+        .sub-nav a { color: #8B1D20; text-decoration: none; margin: 0 15px; opacity: 0.7; transition: opacity 0.3s; }
+        .sub-nav a:hover { opacity: 1; text-decoration: underline; }
+        .sub-nav .active { opacity: 1; font-weight: bold; text-decoration: none !important; cursor: default; }
+
+        .divider { width: 100%; max-width: 800px; border-bottom: 1px solid #D9D4C7; margin: 20px 0 40px 0; }
+        
+        h2 { font-family: 'IM Fell DW Pica', serif; font-size: 2rem; margin-top: 20px; }
+        p.subtitle { font-style: italic; margin-bottom: 40px; opacity: 0.8; }
+
+        #cloud { max-width: 850px; margin: 20px auto; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 20px; padding: 20px; }
+        .word { transition: all 0.4s ease; cursor: default; line-height: 1; }
+        .word:hover { color: #000; transform: scale(1.15); }
+
+        .footer { margin-top: 100px; text-align: center; font-size: 0.85rem; color: #A9A497; border-top: 1px solid #D9D4C7; padding-top: 40px; font-style: italic; line-height: 1.6; }
+        .credit { display: block; margin-top: 15px; font-style: normal; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #8B1D20; }
     </style>
 </head>
 <body>
-    <h1>Look Yonder! A big bot cloud come!</h1>
-    <p>Common themes found within the letters sent to The Red Bot Files.</p>
-    
-    <div id="cloud">Loading words from the deep...</div>
+    <div class="header">
+        <svg class="logo-svg" viewBox="0 0 24 24"><path d="M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z"/></svg>
+        <h1>The Red Bot Files</h1>
+    </div>
 
-    <a href="/" class="back-link">← Return to the Letter</a>
+    <nav class="sub-nav">
+        <a href="/">Ask me Anything</a> | 
+        <span class="active">Look Yonder</span>
+    </nav>
+
+    <div class="divider"></div>
+
+    <h2>Look Yonder! A big bot cloud come.</h2>
+    <p class="subtitle">Common themes found within the letters sent to the archive.</p>
+    
+    <div id="cloud">Loading the ghosts of questions...</div>
+
+    <div class="footer">
+        This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for <a href="https://www.theredhandfiles.com" target="_blank" style="color: inherit; text-decoration: underline;">The Red Hand Files</a>.
+        <span class="credit">Made with ❤️ by varioni</span>
+    </div>
 
     <script>
         async function loadCloud() {
@@ -33,8 +65,8 @@
                     const el = document.createElement('span');
                     el.className = 'word';
                     el.innerText = word.text;
-                    el.style.fontSize = word.size + 'px';
-                    el.style.opacity = Math.min(1, 0.3 + (word.size / 50));
+                    el.style.fontSize = Math.min(60, word.size) + 'px';
+                    el.style.opacity = Math.min(1, 0.4 + (word.size / 60));
                     container.appendChild(el);
                 });
             } catch (e) {
