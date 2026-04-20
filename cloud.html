@@ -7,39 +7,30 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%238B1D20%22><path d=%22M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z%22/></svg>">
     <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #F4F1EA; color: #8B1D20; font-family: 'EB Garamond', serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 60px 20px; }
+        body { background-color: #F4F1EA; color: #8B1D20; font-family: 'EB Garamond', serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 40px 20px; }
         
-        /* Distinct Bot Header */
+        /* Adjusted Header */
         .header { text-align: center; margin-bottom: 5px; }
-        .logo-svg { width: 45px; fill: #8B1D20; margin-bottom: 10px; }
-        h1 { font-family: 'IM Fell DW Pica', serif; font-size: 3rem; text-transform: uppercase; margin: 0; letter-spacing: 2px; }
+        .logo-svg { width: 32px; fill: #8B1D20; margin-bottom: 8px; }
+        h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.2rem; text-transform: uppercase; margin: 0; letter-spacing: 2px; line-height: 1.1; }
         
-        .nav-container { 
-            margin-top: 25px; 
-            text-transform: uppercase; 
-            letter-spacing: 3px; 
-            font-size: 0.85rem; 
-            font-weight: 500; 
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
+        .nav-container { margin-top: 20px; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: center; gap: 12px; font-style: italic; }
         .nav-container a, .nav-container span { color: #8B1D20; text-decoration: none; transition: opacity 0.3s; }
-        .nav-container .separator { color: #8B1D20; font-weight: 300; opacity: 0.6; }
-        .nav-container a:hover { opacity: 0.5; }
-        .nav-container .active { font-weight: 800; }
+        .nav-container .separator { color: #8B1D20; font-weight: 300; opacity: 0.5; font-style: normal; }
+        .nav-container .active { font-weight: 800; opacity: 1; }
 
         .divider { width: 100%; max-width: 1000px; border-bottom: 1px solid #D9D4C7; margin: 25px 0 60px 0; }
         
-        /* Matched Heading Style */
+        /* Italic Styled Headings */
         h2 { font-family: 'EB Garamond', serif; font-size: 1.6rem; margin-top: 20px; font-style: italic; color: #7F7A6D; text-align: center; font-weight: normal; }
-        p.subtitle { font-family: 'EB Garamond', serif; font-size: 1.6rem; font-style: italic; color: #7F7A6D; margin: 0 0 40px 0; opacity: 1; text-align: center; }
+        .subtitle { font-family: 'EB Garamond', serif; font-size: 1.2rem; font-style: italic; color: #7F7A6D; margin: 5px 0 40px 0; text-align: center; font-weight: normal; }
 
-        #cloud { max-width: 850px; margin: 20px auto; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 20px; padding: 20px; }
-        .word { transition: all 0.4s ease; cursor: default; line-height: 1; }
-        .word:hover { color: #000; transform: scale(1.15); }
+        /* Visualization Cloud */
+        #cloud { max-width: 900px; min-height: 400px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 15px 25px; padding: 20px; position: relative; }
+        .word { transition: all 0.4s ease; cursor: default; line-height: 1.1; display: inline-block; }
+        .word:hover { color: #000; transform: scale(1.2); }
 
-        .footer { margin-top: 100px; text-align: center; font-size: 0.85rem; color: #A9A497; border-top: 1px solid #D9D4C7; padding-top: 40px; font-style: italic; line-height: 1.6; }
+        .footer { margin-top: 100px; text-align: center; font-size: 0.8rem; color: #A9A497; border-top: 1px solid #D9D4C7; padding-top: 40px; font-style: italic; line-height: 1.6; max-width: 800px; }
     </style>
 </head>
 <body>
@@ -49,17 +40,17 @@
     </div>
 
     <nav class="nav-container">
-        <a href="/">ASK ME ANYTHING</a>
+        <a href="/">Ask me Anything</a>
         <span class="separator">/</span>
-        <span class="active">LOOK YONDER</span>
+        <span class="active">Look Yonder</span>
     </nav>
 
     <div class="divider"></div>
 
     <h2>Look Yonder! A big bot cloud come.</h2>
-    <p class="subtitle">Common themes found within the letters sent to the archive.</p>
+    <div class="subtitle">Common themes found within the letters sent to the archive.</div>
     
-    <div id="cloud">Loading the ghosts of questions...</div>
+    <div id="cloud">Gathering the words...</div>
 
     <div class="footer">
         This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for The Red Hand Files.
@@ -73,12 +64,19 @@
                 const container = document.getElementById('cloud');
                 container.innerHTML = '';
 
-                words.forEach(word => {
+                words.forEach((word, index) => {
                     const el = document.createElement('span');
                     el.className = 'word';
                     el.innerText = word.text;
-                    el.style.fontSize = Math.min(60, word.size) + 'px';
-                    el.style.opacity = Math.min(1, 0.4 + (word.size / 60));
+                    
+                    // Dynamic scaling and slight random rotation for "cloud" feel
+                    const size = Math.min(65, word.size);
+                    const rotation = (index % 3 === 0) ? (Math.random() * 10 - 5) : 0;
+                    
+                    el.style.fontSize = size + 'px';
+                    el.style.opacity = Math.min(1, 0.4 + (size / 70));
+                    el.style.transform = `rotate(${rotation}deg)`;
+                    
                     container.appendChild(el);
                 });
             } catch (e) {
