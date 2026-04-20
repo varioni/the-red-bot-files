@@ -8,28 +8,42 @@
     <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <style>
         body { background-color: #F4F1EA; color: #8B1D20; font-family: 'EB Garamond', serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 60px 20px; }
-        .header { text-align: center; margin-bottom: 20px; }
-        .logo-svg { width: 60px; fill: #8B1D20; margin-bottom: 10px; }
-        h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.5rem; text-transform: uppercase; margin: 0; }
         
-        /* Unified Navigation */
-        .sub-nav { margin-bottom: 40px; font-style: italic; letter-spacing: 1px; }
-        .sub-nav a { color: #8B1D20; text-decoration: none; margin: 0 15px; opacity: 0.7; transition: opacity 0.3s; }
-        .sub-nav a:hover { opacity: 1; text-decoration: underline; }
-        .sub-nav .active { opacity: 1; font-weight: bold; text-decoration: none !important; cursor: default; }
+        /* Header & Navigation */
+        .header { text-align: center; margin-bottom: 5px; }
+        .logo-svg { width: 45px; fill: #8B1D20; margin-bottom: 10px; }
+        h1 { font-family: 'EB Garamond', serif; font-size: 3.5rem; font-weight: 800; margin: 0; letter-spacing: -1px; }
+        
+        .nav-container { 
+            margin-top: 25px; 
+            text-transform: uppercase; 
+            letter-spacing: 3px; 
+            font-size: 0.85rem; 
+            font-weight: 500; 
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .nav-container a, .nav-container span { color: #8B1D20; text-decoration: none; transition: opacity 0.3s; }
+        .nav-container .separator { color: #8B1D20; font-weight: 300; opacity: 0.6; }
+        .nav-container a:hover { opacity: 0.5; }
+        .nav-container .active { font-weight: 800; }
 
-        .divider { width: 100%; max-width: 800px; border-bottom: 1px solid #D9D4C7; margin: 20px 0 40px 0; }
+        .divider { width: 100%; max-width: 1000px; border-bottom: 1px solid #D9D4C7; margin: 25px 0 60px 0; }
+
+        /* Interface */
         .container { max-width: 900px; width: 100%; }
-        textarea { width: 100%; background: transparent; border: none; border-bottom: 1px solid #D9D4C7; font-family: 'EB Garamond', serif; font-size: 1.3rem; font-style: italic; color: #444; padding: 10px 0; outline: none; resize: none; text-align: center; }
-        button { background: transparent; color: #8B1D20; border: 1px solid #8B1D20; padding: 10px 30px; margin-top: 20px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; transition: all 0.3s ease; }
+        textarea { width: 100%; background: transparent; border: none; border-bottom: 1px solid #D9D4C7; font-family: 'EB Garamond', serif; font-size: 1.5rem; font-style: italic; color: #444; padding: 10px 0; outline: none; resize: none; text-align: center; }
+        button { background: transparent; color: #8B1D20; border: 1px solid #8B1D20; padding: 10px 40px; margin-top: 30px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; transition: all 0.3s ease; }
         button:hover { background: #8B1D20; color: #F4F1EA; }
+
         .user-question-display { font-weight: 700; font-size: 1.4rem; color: #8B1D20; text-align: center; margin: 40px 0; white-space: pre-wrap; display: block; }
         .content-wrapper { display: grid; grid-template-columns: 350px 1fr; gap: 50px; margin-top: 20px; align-items: flex-start; text-align: left; }
-        .polaroid { background: #fff; padding: 15px 15px 60px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transform: rotate(-1.5deg); display: none; }
-        .polaroid img { width: 100%; height: 320px; object-fit: cover; filter: sepia(0.3) contrast(1.1) brightness(0.9) grayscale(0.2); }
-        .response { font-size: 1.2rem; line-height: 1.8; color: #111; white-space: pre-wrap; }
+        .polaroid { background: #fff; padding: 15px 15px 60px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); transform: rotate(-1.5deg); display: none; }
+        .polaroid img { width: 100%; height: 320px; object-fit: cover; filter: sepia(0.3) contrast(1.1); }
+        .response { font-size: 1.25rem; line-height: 1.8; color: #111; white-space: pre-wrap; }
+
         .footer { margin-top: 100px; text-align: center; font-size: 0.85rem; color: #A9A497; border-top: 1px solid #D9D4C7; padding-top: 40px; font-style: italic; line-height: 1.6; }
-        .credit { display: block; margin-top: 15px; font-style: normal; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #8B1D20; }
         @media (max-width: 800px) { .content-wrapper { grid-template-columns: 1fr; } .polaroid { margin: 0 auto 30px auto; } }
     </style>
 </head>
@@ -39,9 +53,10 @@
         <h1>The Red Bot Files</h1>
     </div>
 
-    <nav class="sub-nav">
-        <span class="active">Ask me Anything</span> | 
-        <a href="/cloud.html">Look Yonder</a>
+    <nav class="nav-container">
+        <span class="active">ASK ME ANYTHING</span>
+        <span class="separator">/</span>
+        <a href="/cloud.html">LOOK YONDER</a>
     </nav>
 
     <div class="divider"></div>
@@ -59,8 +74,7 @@
     </div>
 
     <div class="footer">
-        This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for <a href="https://www.theredhandfiles.com" target="_blank" style="color: inherit; text-decoration: underline;">The Red Hand Files</a>.
-        <span class="credit">Made with ❤️ by varioni</span>
+        This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for The Red Hand Files.
     </div>
 
 <script>
