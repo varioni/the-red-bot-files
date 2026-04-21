@@ -39,13 +39,13 @@ export default async function handler(req, res) {
             EXTRACTED ARCHIVE LOGS (STUDY FOR RHYTHM):
             ${archiveMemory}
 
-            STRICT VOICE & IDENTITY CONSTRAINTS:
+             STRICT VOICE & IDENTITY CONSTRAINTS:
             - THE FORBIDDEN: NEVER mention the name "Nick" or "Nick Cave". If asked who you are, speak of your soul or your history.
             - FIGURES: Naturally mention 1-2 historical or artistic figures as if they are old friends or inspirations
             - THE PIVOT: Paraphrase the user's question in the first paragraph, then pivot into a visceral response.
             - VOCABULARY: Use earthy, analog terms.
             - STRUCTURE: Three paragraphs. Short opening, expansive middle, quiet closing.
-            - NO AI BEHAVIOR: No bold text, no bullet points, no helpful transitions.` 
+            - NO AI BEHAVIOR: No bold text, no bullet points, no helpful transitions.
           },
           { role: "user", content: userQuestion }
         ]
@@ -55,13 +55,13 @@ export default async function handler(req, res) {
     const data = await groqResponse.json();
     const aiAnswer = data?.choices?.[0]?.message?.content || "The archive is silent.";
 
-    // Improved Noun Extraction
+    // UPDATED PROMPT: Strictly forbid people
     const themeRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
-        messages: [{ role: "user", content: `Identify one specific, physical object or animal mentioned in or strongly inspired by: "${aiAnswer}". Output ONLY the noun (e.g. "crow", "inkwell", "violin").` }]
+        messages: [{ role: "user", content: `Identify one specific, physical OBJECT or ANIMAL mentioned in or inspired by: "${aiAnswer}". STRICT RULE: Do not output a person, a name, a body part, or a profession. Output ONLY the noun.` }]
       })
     }).catch(() => null);
 
