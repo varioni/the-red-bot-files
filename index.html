@@ -37,11 +37,10 @@
 
         #share-container { margin-top: 50px; width: 100%; display: flex; justify-content: center; }
 
-        /* Footer Styling */
         .footer { margin-top: auto; text-align: center; font-size: 0.9rem; color: var(--dust); border-top: 1px solid #D9D4C7; padding: 40px 0; font-style: italic; max-width: 800px; width: 100%; line-height: 1.6; }
         .footer a { color: var(--dust); text-decoration: underline; }
-        .footer .attribution { color: var(--blood); margin-top: 8px; display: block; }
-        .footer .attribution a { color: var(--blood); }
+        .footer .attribution { color: var(--blood); margin-top: 8px; display: block; font-weight: 500; }
+        .footer .attribution a { color: var(--blood); text-decoration: none; }
         
         @media (max-width: 768px) { .result-content { grid-template-columns: 1fr; } }
     </style>
@@ -57,6 +56,8 @@
         <span class="active">Ask me Anything</span>
         <span style="opacity: 0.3">/</span>
         <a href="/cloud.html">Look Yonder</a>
+        <span style="opacity: 0.3">/</span>
+        <a href="/about.html">About</a>
     </nav>
 
     <div class="divider"></div>
@@ -103,7 +104,10 @@
 
                 document.getElementById('echo-text').innerText = question;
                 document.getElementById('answer-text').innerText = data.answer;
-                document.getElementById('polaroid-img').src = `https://loremflickr.com/400/400/${data.noun},gothic/all?lock=${data.seed}`;
+                
+                // ADDED: "stilllife" tag to force object-based results
+                document.getElementById('polaroid-img').src = `https://loremflickr.com/400/400/${data.noun},stilllife/all?lock=${data.seed}`;
+                
                 document.getElementById('result-area').style.display = 'flex';
 
                 if (data.shareId) {
