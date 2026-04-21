@@ -11,24 +11,28 @@ export default async function handler(req) {
     const { messages } = await req.json();
     const userMessage = messages[messages.length - 1].content;
 
+    // --- SAFETY NET ---
+    // If the environment variable fails, use the hardcoded URL.
+    // PASTE YOUR ACTUAL ENDPOINT URL BETWEEN THE QUOTES BELOW if undefined persists.
+    const backupUrl = "https://015199e2-6db1-4032-9774-e07ed7d95fd3-us-east1.apps.astra.datastax.com"; 
+    const endpoint = (process.env.ASTRA_DB_API_ENDPOINT || backupUrl).replace(/\/$/, "");
+
+    if (!endpoint || endpoint === "undefined") {
+      throw new Error("Endpoint is missing. Please paste your Astra URL into the 'backupUrl' field in chat.js.");
+    }
+
     // 1. Profanity Filter
     const forbiddenWords = ['fuck', 'shit', 'cunt', 'piss', 'nigger', 'faggot'];
-    const containsProfanity = forbiddenWords.some(word => 
-      userMessage.toLowerCase().includes(word)
-    );
+    const containsProfanity = forbiddenWords.some(word => userMessage.toLowerCase().includes(word));
 
     if (containsProfanity) {
       return new Response(JSON.stringify({
-        choices: [{
-          message: {
-            content: "The Ghost remains silent in the face of such language. Let us return to a place of mutual respect and meaningful inquiry. [Silence]"
-          }
-        }]
+        choices: [{ message: { content: "The Ghost remains silent. [Silence]" } }]
       }), { headers: { 'Content-Type': 'application/json' } });
     }
 
     // 2. Fetch Archive from Astra DB
-    const astraResponse = await fetch(`${process.env.ASTRA_DB_API_ENDPOINT}/api/json/v1/${process.env.ASTRA_DB_NAMESPACE}/archives`, {
+    const astraResponse = await fetch(`${endpoint}/api/json/v1/${process.env.ASTRA_DB_NAMESPACE}/archives`, {
       method: 'POST',
       headers: {
         'Token': process.env.ASTRA_DB_APPLICATION_TOKEN,
@@ -55,29 +59,24 @@ export default async function handler(req) {
     }
 
     const randomSelection = shuffle([...documents]).slice(0, 12);
-
     const archiveMemory = randomSelection.map(doc => 
       `USER QUESTION: ${doc.question}\nRESPONSE: ${doc.answer}`
     ).join("\n\n---\n\n");
 
-    // 4. Integrated System Prompt
+    // 4. System Prompt
     const systemPrompt = `
       STRICT VOICE & IDENTITY CONSTRAINTS:
       - THE FORBIDDEN: NEVER mention the name "Nick" or "Nick Cave". 
-      - FIGURES: Naturally mention 1-2 historical or artistic figures as if they are friends or inspirations.
-      - THE PIVOT: Paraphrase the user's question in the first paragraph, then pivot into a visceral, poetic response.
+      - FIGURES: Naturally mention 1-2 historical or artistic figures.
+      - THE PIVOT: Paraphrase the user's question in the first paragraph, then pivot into a poetic response.
       - VOCABULARY: Use earthy, analog terms.
       - STRUCTURE: Three paragraphs. Short opening, expansive middle, quiet closing.
-      - NO AI BEHAVIOR: No bold text, no bullet points, no helpful transitions.
+      - NO AI BEHAVIOR: No bold text, no bullet points.
 
       IMAGE GENERATION RULE:
-      At the very end of your response, on a completely new line, you MUST write: NOUN: [one specific physical object or animal mentioned in your answer]. 
-      Example: NOUN: crow
-      (STRICT: Avoid people or names for this noun.)
+      At the very end, on a new line, write: NOUN: [one specific object or animal mentioned]. 
 
       ARCHIVE DNA:
-      Use these verbatim writings to inform your voice, perspectives, and vocabulary:
-      
       ${archiveMemory}
     `;
 
@@ -90,10 +89,7 @@ export default async function handler(req) {
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-specdec',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...messages
-        ],
+        messages: [{ role: 'system', content: systemPrompt }, ...messages],
         temperature: 0.72,
         max_tokens: 1000,
       }),
