@@ -79,7 +79,7 @@
                 const data = await response.json();
                 document.getElementById('echo-text').innerText = question;
                 document.getElementById('answer-text').innerText = data.answer;
-                document.getElementById('polaroid-img').src = `https://loremflickr.com/400/400/${data.noun},nature,architecture/all?lock=${data.seed}`;
+                document.getElementById('polaroid-img').src = `https://loremflickr.com/400/400/${data.noun},stilllife/all?lock=${data.seed}`;
                 document.getElementById('result-area').style.display = 'flex';
                 if (data.shareId) {
                     const shareUrl = `${window.location.origin}/share.html?id=${data.shareId}`;
