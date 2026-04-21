@@ -1,4 +1,7 @@
 export default async function handler(req, res) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 9500); 
+
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const userQuestion = body?.question || "";
@@ -15,7 +18,8 @@ export default async function handler(req, res) {
       const astraRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ "find": { "options": { "limit": 4 } } }) // Lowered limit for speed
+        body: JSON.stringify({ "find": { "options": { "limit": 4 } } }),
+        signal: controller.signal
       });
       const astraData = await astraRes.json();
       if (astraData?.data?.documents) {
@@ -23,7 +27,7 @@ export default async function handler(req, res) {
           `USER QUESTION: ${doc.question || "..."}\nYOUR PREVIOUS RESPONSE: ${doc.answer || ""}`
         ).join("\n\n---\n\n");
       }
-    } catch (e) { console.error("Archive Fetch Failed:", e); }
+    } catch (e) { console.error("Archive Fetch Failed"); }
 
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -36,58 +40,64 @@ export default async function handler(req, res) {
             role: "system", 
             content: `You are the author of the following archive.
             
-            EXTRACTED ARCHIVE LOGS:
+            EXTRACTED ARCHIVE LOGS (STUDY FOR RHYTHM):
             ${archiveMemory}
 
             STRICT VOICE & IDENTITY CONSTRAINTS:
-            - THE FORBIDDEN: NEVER mention the name "Nick" or "Nick Cave". 
-            - FIGURES: Naturally mention 1-2 historical or artistic figures.
-            - THE PIVOT: Paraphrase the user's question in the first paragraph, then pivot.
-            - VOCABULARY: Use earthy, analog terms.
+            - THE FORBIDDEN: NEVER mention the name "Nick" or "Nick Cave". If asked who you are, speak of your soul, your history, or your observations.
+            - FIGURES: Naturally mention 1-2 historical or artistic figures as if they are old friends or ghosts you currently walk with.
+            - THE PIVOT: Paraphrase the user's question in the first paragraph, then pivot into a visceral, poetic detour.
+            - VOCABULARY: Use earthy, analog terms with a hint of Gothic metaphors (blood, stars, ink, bone, salt, ghosts).
             - STRUCTURE: Three paragraphs. Short opening, expansive middle, quiet closing.
-            - NO AI BEHAVIOR: No bold text, no bullet points.` 
+            - NO AI BEHAVIOR: No bold text, no bullet points, no "helpful" transitions.
+
+            IMAGE GENERATION RULE:
+            At the very end of your response, on a completely new line, you MUST write: NOUN: [one specific physical object or animal mentioned in your answer]. 
+            Example: NOUN: crow
+            (Strictly avoid people, names, or body parts for this noun.)` 
           },
           { role: "user", content: userQuestion }
         ]
-      })
+      }),
+      signal: controller.signal
     });
 
     const data = await groqResponse.json();
-    // If Groq fails, aiAnswer will be our specific error message
-    const aiAnswer = data?.choices?.[0]?.message?.content || "The archive is currently overwhelmed by shadows. Please try your inquiry again in a moment.";
+    const rawContent = data?.choices?.[0]?.message?.content || "";
+    
+    if (!rawContent) throw new Error("Groq Timeout");
 
-    const themeRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "llama-3.1-8b-instant",
-        messages: [{ role: "user", content: `Identify one specific, physical OBJECT or ANIMAL mentioned in: "${aiAnswer}". STRICT RULE: No people, no names, no body parts. Output ONLY the noun.` }]
-      })
-    }).catch(() => null);
+    const parts = rawContent.split("NOUN:");
+    const aiAnswer = parts[0].trim();
+    let noun = (parts[1] || "artifact").trim().toLowerCase().replace(/[^a-z]/g, "");
 
-    let noun = "mystery";
-    if (themeRes) {
-      const themeData = await themeRes.json();
-      let rawNoun = themeData?.choices?.[0]?.message?.content || "mystery";
-      noun = rawNoun.trim().split(/\s+/).pop().replace(/[^a-zA-Z]/g, "").toLowerCase();
-      // Block common nouns that trigger "people" images
-      if (["friend", "man", "woman", "child", "someone", "soul"].includes(noun)) noun = "artifact";
-    }
+    // Safety fallback for common triggers of people-images
+    if (["friend", "man", "woman", "child", "someone", "soul", "figure", "ghost"].includes(noun)) noun = "artifact";
 
     const seed = Math.floor(Math.random() * 1000);
     let shareId = null;
 
     if (isSafe(userQuestion)) {
       try {
-        const logUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/logs`;
-        await fetch(logUrl, {
+        const logUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/archives`; // Logging to main archive to grow memory
+        const logRes = await fetch(logUrl, {
           method: 'POST',
           headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ "insertOne": { "document": { "timestamp": new Date().toISOString(), "question": userQuestion, "answer": aiAnswer, "noun": noun, "seed": seed } } })
-        }).then(res => res.json()).then(d => { shareId = d?.status?.insertedIds?.[0]; });
-      } catch (logError) {}
+          body: JSON.stringify({ 
+            "insertOne": { 
+              "document": { "timestamp": new Date().toISOString(), "question": userQuestion, "answer": aiAnswer, "noun": noun, "seed": seed } 
+            } 
+          }),
+          signal: controller.signal
+        });
+        const logData = await logRes.json();
+        shareId = logData?.status?.insertedIds?.[0];
+      } catch (logError) { console.error("Log failed"); }
     }
 
+    clearTimeout(timeoutId);
     res.status(200).json({ answer: aiAnswer, noun, seed, shareId });
-  } catch (err) { res.status(200).json({ answer: "The archive is resting. Please try again." }); }
+  } catch (err) {
+    res.status(200).json({ answer: "The archive is currently overwhelmed by shadows. Please try your inquiry again in a moment.", noun: "mist", seed: 123 });
+  }
 }
