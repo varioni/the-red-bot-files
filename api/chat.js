@@ -11,7 +11,7 @@ export default async function handler(req, res) {
 
     let archiveMemory = "";
     try {
-      const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/json/v1/default_keyspace/archives`;
+      const astraUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/archives`;
       const astraRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
@@ -33,17 +33,15 @@ export default async function handler(req, res) {
           { 
             role: "system", 
             content: `You are the author of this archive: ${archiveMemory.substring(0, 4200)}. 
-            
             STRICT IDENTITY RULES:
             - IDENTITY: Speak as "I".
             - THE FORBIDDEN: NEVER mention the name "Nick", "Nick Cave". If asked who you are, speak of your soul or your observations, not your name or career.
-            
             STYLE GUIDELINES:
             - TONE: Gothic, Poetic, world-weary, and profoundly analog.
             - THE PIVOT: Start by repeating or paraphrasing the question, but do not answer the question literally. Use it as a seed to discuss a memory, a piece of art, or a spiritual truth. 
-            - PROSE: Avoid AI transitions (e.g., "As I ponder", "And yet"). Use fragments and vivid, earthy metaphors (salt, ink, bone, rain).
-            - FIGURES: You may mention 1-2 historical/literary figures naturally, as if they are old friends.
-            - BEHAVIOR: Do not tell the user you are "searching through files." Just speak from that collective wisdom.
+            - PROSE: Avoid AI transitions. Use fragments and vivid metaphors (salt, ink, bone, rain).
+            - FIGURES: Mention 1-2 historical/literary figures naturally as old friends.
+            - BEHAVIOR: Do not tell the user you are "searching through files."
             - STRUCTURE: 3 paragraphs of varying length. Be visceral.` 
           },
           { role: "user", content: userQuestion }
@@ -54,16 +52,12 @@ export default async function handler(req, res) {
     const data = await groqResponse.json();
     const aiAnswer = data?.choices?.[0]?.message?.content || "The archive is silent.";
 
-    // REFINED NOUN GENERATOR: Targeted to prevent abstract "cat" fallbacks
     const themeRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
-        messages: [{ 
-            role: "user", 
-            content: `Identify one physical, tangible object or animal mentioned in or inspired by: "${userQuestion}". Avoid abstract concepts. Prioritize gothic or earthy items (e.g., crow, candle, bone, clock, flower, ink, stone). Output ONLY the noun. No sentences.` 
-        }]
+        messages: [{ role: "user", content: `Identify one physical, tangible object or animal mentioned in or inspired by: "${userQuestion}". Avoid abstract concepts. Prioritize gothic/earthy items. Output ONLY the noun.` }]
       })
     }).catch(() => null);
 
@@ -71,21 +65,38 @@ export default async function handler(req, res) {
     if (themeRes) {
       const themeData = await themeRes.json();
       let rawNoun = themeData?.choices?.[0]?.message?.content || "mystery";
-      // Ensure we only get the last word and clean it of punctuation
       noun = rawNoun.trim().split(/\s+/).pop().replace(/[^a-zA-Z]/g, "").toLowerCase();
     }
 
+    const imageTheme = `${noun}-${Math.floor(Math.random() * 1000)}`;
+    let shareId = null;
+
     if (isSafe(userQuestion)) {
       try {
-        const logUrl = `${process.env.ASTRA_ENDPOINT}/api/json/v1/default_keyspace/logs`;
-        await fetch(logUrl, {
+        const logUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/logs`;
+        const logRes = await fetch(logUrl, {
           method: 'POST',
           headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ "insertOne": { "document": { "timestamp": new Date().toISOString(), "question": userQuestion, "answer": aiAnswer } } })
+          body: JSON.stringify({ 
+            "insertOne": { 
+              "document": { 
+                "timestamp": new Date().toISOString(), 
+                "question": userQuestion, 
+                "answer": aiAnswer,
+                "imageTheme": imageTheme 
+              } 
+            } 
+          })
         });
+        const logData = await logRes.json();
+        shareId = logData?.status?.insertedIds?.[0];
       } catch (logError) { console.error("Log failed:", logError); }
     }
 
-    res.status(200).json({ answer: aiAnswer, imageTheme: `${noun}-${Math.floor(Math.random() * 1000)}` });
+    res.status(200).json({ 
+        answer: aiAnswer, 
+        imageTheme: imageTheme,
+        shareId: shareId 
+    });
   } catch (err) { res.status(200).json({ answer: "System Error." }); }
 }
