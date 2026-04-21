@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Letter from the Archive</title>
+    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #F4F1EA; color: #1a1a1a; font-family: 'EB Garamond', serif; margin: 0; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        .container { max-width: 900px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px; }
+        .polaroid-frame { background: white; padding: 15px 15px 60px 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transform: rotate(-2deg); height: fit-content; }
+        .polaroid-frame img { width: 100%; height: auto; filter: sepia(0.3) contrast(1.1); display: block; }
+        .text-content { line-height: 1.6; font-size: 1.2rem; white-space: pre-wrap; }
+        .question-text { font-style: italic; color: #7F7A6D; margin-bottom: 30px; border-left: 2px solid #8B1D20; padding-left: 20px; }
+        .header { text-align: center; }
+        h1 { font-family: 'IM Fell DW Pica', serif; text-transform: uppercase; color: #8B1D20; margin: 0; }
+        .btn { margin-top: 40px; padding: 10px 20px; border: 1px solid #8B1D20; background: none; color: #8B1D20; text-decoration: none; font-family: 'IM Fell DW Pica', serif; text-transform: uppercase; cursor: pointer; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>The Red Bot Files</h1>
+        <p>A preserved echo from the archive.</p>
+    </div>
+
+    <div class="container" id="content" style="display:none;">
+        <div class="polaroid-frame">
+            <img id="shared-img" src="" alt="Still life">
+        </div>
+        <div class="text-content">
+            <div id="shared-question" class="question-text"></div>
+            <div id="shared-answer"></div>
+            <a href="/" class="btn" style="display: inline-block; margin-top: 60px;">Ask your own question</a>
+        </div>
+    </div>
+
+    <script>
+        async function loadSharedLetter() {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            if (!id) return;
+
+            try {
+                const res = await fetch(`/api/get-share?id=${id}`);
+                const data = await res.json();
+                
+                if (data.answer) {
+                    document.getElementById('shared-question').innerText = data.question;
+                    document.getElementById('shared-answer').innerText = data.answer;
+                    document.getElementById('shared-img').src = `https://loremflickr.com/400/400/stilllife,${data.imageTheme}`;
+                    document.getElementById('content').style.display = 'grid';
+                }
+            } catch (e) {
+                document.body.innerHTML = "<h2>This letter has faded from the archive.</h2>";
+            }
+        }
+        loadSharedLetter();
+    </script>
+</body>
+</html>
