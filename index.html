@@ -10,37 +10,38 @@
         :root { --paper: #F4F1EA; --ink: #1a1a1a; --blood: #8B1D20; --dust: #7F7A6D; }
         body { background-color: var(--paper); color: var(--ink); font-family: 'EB Garamond', serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 40px 20px; min-height: 100vh; }
         
-        /* Header & Nav */
         .header { text-align: center; margin-bottom: 5px; }
         .logo-svg { width: 40px; fill: var(--blood); margin-bottom: 8px; }
         h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.2rem; text-transform: uppercase; margin: 0; letter-spacing: 2px; color: var(--blood); }
+        
         .nav-container { margin-top: 20px; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 500; display: flex; gap: 12px; font-style: italic; }
         .nav-container a { color: var(--blood); text-decoration: none; }
         .nav-container .active { font-weight: 800; }
         .divider { width: 100%; max-width: 1000px; border-bottom: 1px solid #D9D4C7; margin: 25px 0 40px 0; }
 
-        /* Input Section */
-        .input-group { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 15px; }
-        textarea { width: 100%; height: 100px; padding: 15px; background: transparent; border: 1px solid #D9D4C7; font-family: 'EB Garamond', serif; font-size: 1.2rem; resize: none; box-sizing: border-box; }
+        /* Input Styling */
+        .input-group { width: 100%; max-width: 600px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        textarea { width: 100%; height: 120px; padding: 15px; background: transparent; border: 1px solid #D9D4C7; font-family: 'EB Garamond', serif; font-size: 1.2rem; resize: none; box-sizing: border-box; text-align: center; }
         textarea:focus { outline: none; border-color: var(--blood); }
-        .btn { align-self: flex-end; padding: 10px 25px; background: transparent; border: 1px solid var(--blood); color: var(--blood); font-family: 'IM Fell DW Pica', serif; text-transform: uppercase; cursor: pointer; transition: all 0.3s; }
+        
+        .btn { padding: 8px 25px; background: transparent; border: 1px solid var(--blood); color: var(--blood); font-family: 'EB Garamond', serif; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 3px; cursor: pointer; transition: all 0.3s; }
         .btn:hover { background: var(--blood); color: var(--paper); }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn:disabled { opacity: 0.5; }
 
-        /* Results Section */
-        #result-area { width: 100%; max-width: 1000px; display: none; grid-template-columns: 1fr 1.5fr; gap: 50px; margin-top: 60px; }
+        /* Results Styling */
+        #result-area { width: 100%; max-width: 900px; display: none; flex-direction: column; align-items: center; margin-top: 60px; }
+        .question-echo { color: var(--blood); font-weight: bold; font-size: 1.4rem; text-align: center; margin-bottom: 40px; max-width: 800px; line-height: 1.3; }
+        
+        .result-content { display: grid; grid-template-columns: 1fr 1.5fr; gap: 50px; width: 100%; }
         .polaroid-frame { background: white; padding: 15px 15px 60px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transform: rotate(-2deg); height: fit-content; }
         .polaroid-frame img { width: 100%; height: auto; filter: sepia(0.2) contrast(1.1); display: block; }
         .answer-text { line-height: 1.6; font-size: 1.25rem; white-space: pre-wrap; }
-        .question-echo { font-style: italic; color: var(--dust); margin-bottom: 30px; border-left: 2px solid var(--blood); padding-left: 20px; }
 
-        /* Share Container */
-        #share-container { margin-top: 30px; display: flex; gap: 10px; }
+        #share-container { margin-top: 40px; width: 100%; display: flex; justify-content: center; }
 
-        /* Footer */
         .footer { margin-top: auto; text-align: center; font-size: 0.9rem; color: #A9A497; border-top: 1px solid #D9D4C7; padding: 40px 0; font-style: italic; max-width: 800px; width: 100%; }
         
-        @media (max-width: 768px) { #result-area { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .result-content { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -59,19 +60,19 @@
     <div class="divider"></div>
 
     <div class="input-group">
-        <textarea id="question-input" placeholder="Write your letter here..."></textarea>
+        <textarea id="question-input" placeholder="..."></textarea>
         <button id="send-btn" class="btn" onclick="askTheArchive()">Send into the Void</button>
     </div>
 
     <div id="result-area">
-        <div class="polaroid-frame">
-            <img id="polaroid-img" src="" alt="Still life artifact">
+        <div id="echo-text" class="question-echo"></div>
+        <div class="result-content">
+            <div class="polaroid-frame">
+                <img id="polaroid-img" src="" alt="Artifact">
+            </div>
+            <div class="answer-text" id="answer-text"></div>
         </div>
-        <div class="answer-content">
-            <div id="echo-text" class="question-echo"></div>
-            <div id="answer-text" class="answer-text"></div>
-            <div id="share-container"></div>
-        </div>
+        <div id="share-container"></div>
     </div>
 
     <div class="footer">
@@ -83,7 +84,6 @@
             const input = document.getElementById('question-input');
             const btn = document.getElementById('send-btn');
             const question = input.value.trim();
-
             if (!question) return;
 
             input.disabled = true;
@@ -96,27 +96,22 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ question })
                 });
-
                 const data = await response.json();
 
-                // Display Results
                 document.getElementById('echo-text').innerText = question;
                 document.getElementById('answer-text').innerText = data.answer;
                 document.getElementById('polaroid-img').src = `https://loremflickr.com/400/400/stilllife,${data.imageTheme}`;
-                document.getElementById('result-area').style.display = 'grid';
+                document.getElementById('result-area').style.display = 'flex';
 
-                // Handle Share Link
                 if (data.shareId) {
                     const shareUrl = `${window.location.origin}/share.html?id=${data.shareId}`;
                     document.getElementById('share-container').innerHTML = `
                         <button onclick="copyLink('${shareUrl}')" class="btn">Copy Share Link</button>
                     `;
                 }
-
                 window.scrollTo({ top: document.getElementById('result-area').offsetTop - 50, behavior: 'smooth' });
-
             } catch (err) {
-                alert("The void is silent today. Try again later.");
+                alert("The void is silent.");
             } finally {
                 input.disabled = false;
                 btn.disabled = false;
@@ -125,9 +120,7 @@
         }
 
         function copyLink(url) {
-            navigator.clipboard.writeText(url).then(() => {
-                alert("The link has been copied to your clipboard.");
-            });
+            navigator.clipboard.writeText(url).then(() => alert("Link copied to clipboard."));
         }
     </script>
 </body>
