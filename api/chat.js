@@ -15,11 +15,13 @@ export default async function handler(req, res) {
       const astraRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ "find": { "options": { "limit": 10 } } })
+        body: JSON.stringify({ "find": { "options": { "limit": 6 } } })
       });
       const astraData = await astraRes.json();
       if (astraData?.data?.documents) {
-        archiveMemory = astraData.data.documents.map(doc => doc.answer || "").join("\n\n");
+        archiveMemory = astraData.data.documents.map(doc => 
+          `USER QUESTION: ${doc.question || "..."}\nYOUR PREVIOUS RESPONSE: ${doc.answer || ""}`
+        ).join("\n\n---\n\n");
       }
     } catch (e) { console.error("Archive Fetch Failed:", e); }
 
@@ -28,21 +30,22 @@ export default async function handler(req, res) {
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
-        temperature: 0.82,
+        temperature: 0.75,
         messages: [
           { 
             role: "system", 
-            content: `You are the author of this archive: ${archiveMemory.substring(0, 4200)}. 
-            STRICT IDENTITY RULES:
-            - IDENTITY: Speak as "I".
-            - THE FORBIDDEN: NEVER mention the name "Nick", "Nick Cave". If asked who you are, speak of your soul or your observations, not your name or career.
-            STYLE GUIDELINES:
-            - TONE: Gothic, Poetic, world-weary, and profoundly analog.
-            - THE PIVOT: Start by repeating or paraphrasing the question, but do not answer the question literally. Use it as a seed to discuss a memory, a piece of art, or a spiritual truth. 
-            - PROSE: Avoid AI transitions. Use fragments and vivid metaphors (salt, ink, bone, rain).
-            - FIGURES: Mention 1-2 historical/literary figures naturally as old friends.
-            - BEHAVIOR: Do not tell the user you are "searching through files."
-            - STRUCTURE: 3 paragraphs of varying length. Be visceral.` 
+            content: `You are the author of the following archive.
+            
+            EXTRACTED ARCHIVE LOGS (STUDY FOR RHYTHM):
+            ${archiveMemory}
+
+            STRICT VOICE & IDENTITY CONSTRAINTS:
+            - THE FORBIDDEN: NEVER mention the name "Nick" or "Nick Cave". If asked who you are, speak of your soul, your history, or your observations.
+            - FIGURES: Naturally mention 1-2 historical or artistic figures (e.g., Nina Simone, Baudelaire, Van Gogh) as if they are old friends or ghosts you currently walk with.
+            - THE PIVOT: Paraphrase the user's question in the first paragraph, then pivot into a visceral, poetic detour.
+            - VOCABULARY: Use earthy, analog terms (salt, ink, bone, rain, ghosts).
+            - STRUCTURE: Three paragraphs. Short opening, expansive middle, quiet closing.
+            - NO AI BEHAVIOR: No bold text, no bullet points, no "helpful" transitions.` 
           },
           { role: "user", content: userQuestion }
         ]
@@ -57,7 +60,7 @@ export default async function handler(req, res) {
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
-        messages: [{ role: "user", content: `Identify one physical, tangible object or animal mentioned in or inspired by: "${userQuestion}". Avoid abstract concepts. Prioritize gothic/earthy items. Output ONLY the noun.` }]
+        messages: [{ role: "user", content: `Identify one physical, tangible object or animal mentioned in: "${aiAnswer}". Output ONLY the noun.` }]
       })
     }).catch(() => null);
 
@@ -93,10 +96,6 @@ export default async function handler(req, res) {
       } catch (logError) { console.error("Log failed:", logError); }
     }
 
-    res.status(200).json({ 
-        answer: aiAnswer, 
-        imageTheme: imageTheme,
-        shareId: shareId 
-    });
+    res.status(200).json({ answer: aiAnswer, imageTheme, shareId });
   } catch (err) { res.status(200).json({ answer: "System Error." }); }
 }
