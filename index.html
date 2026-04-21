@@ -3,91 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Red Bot Files</title>
+    <title>The Red Bot Files | Ask me Anything</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%238B1D20%22><path d=%22M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z%22/></svg>">
     <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #F4F1EA; color: #8B1D20; font-family: 'EB Garamond', serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 40px 20px; }
+        :root { --paper: #F4F1EA; --ink: #1a1a1a; --blood: #8B1D20; --dust: #7F7A6D; }
+        body { background-color: var(--paper); color: var(--ink); font-family: 'EB Garamond', serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 40px 20px; min-height: 100vh; }
+        
+        /* Header & Nav */
         .header { text-align: center; margin-bottom: 5px; }
-        .logo-svg { width: 40px; fill: #8B1D20; margin-bottom: 8px; }
-        h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.2rem; text-transform: uppercase; margin: 0; letter-spacing: 2px; line-height: 1.1; }
-        .nav-container { margin-top: 20px; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: center; gap: 12px; font-style: italic; }
-        .nav-container a, .nav-container span { color: #8B1D20; text-decoration: none; transition: opacity 0.3s; }
-        .nav-container .separator { color: #8B1D20; font-weight: 300; opacity: 0.5; font-style: normal; }
-        .nav-container .active { font-weight: 800; opacity: 1; }
+        .logo-svg { width: 40px; fill: var(--blood); margin-bottom: 8px; }
+        h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.2rem; text-transform: uppercase; margin: 0; letter-spacing: 2px; color: var(--blood); }
+        .nav-container { margin-top: 20px; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 500; display: flex; gap: 12px; font-style: italic; }
+        .nav-container a { color: var(--blood); text-decoration: none; }
+        .nav-container .active { font-weight: 800; }
         .divider { width: 100%; max-width: 1000px; border-bottom: 1px solid #D9D4C7; margin: 25px 0 40px 0; }
-        .container { max-width: 900px; width: 100%; }
-        textarea { width: 100%; background: transparent; border: none; font-family: 'EB Garamond', serif; font-size: 1.6rem; font-style: italic; color: #7F7A6D; padding: 10px 0; outline: none; resize: none; text-align: center; }
-        textarea::placeholder { color: #7F7A6D; }
-        button { background: transparent; color: #8B1D20; border: 1px solid #8B1D20; padding: 12px 45px; margin-top: 30px; cursor: pointer; text-transform: uppercase; letter-spacing: 3px; font-size: 0.85rem; }
-        button:hover { background: #8B1D20; color: #F4F1EA; }
-        .user-question-display { font-weight: 700; font-size: 1.4rem; color: #8B1D20; text-align: center; margin: 40px 0; white-space: pre-wrap; }
-        .content-wrapper { display: grid; grid-template-columns: 350px 1fr; gap: 50px; text-align: left; align-items: start; margin-bottom: 60px; }
-        .polaroid { background: #fff; padding: 15px 15px 60px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); transform: rotate(-1.5deg); display: none; box-sizing: border-box; }
-        .polaroid img { width: 100%; height: auto; max-height: 350px; object-fit: cover; filter: sepia(0.3); }
-        .response { font-size: 1.25rem; line-height: 1.8; color: #111; white-space: pre-wrap; }
-        .footer { margin-top: 60px; text-align: center; font-size: 0.9rem; color: #A9A497; border-top: 1px solid #D9D4C7; padding: 40px 0; font-style: italic; line-height: 1.6; max-width: 800px; }
-        .footer a { color: #A9A497; text-decoration: underline; }
-        .footer a:hover { color: #8B1D20; }
+
+        /* Input Section */
+        .input-group { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 15px; }
+        textarea { width: 100%; height: 100px; padding: 15px; background: transparent; border: 1px solid #D9D4C7; font-family: 'EB Garamond', serif; font-size: 1.2rem; resize: none; box-sizing: border-box; }
+        textarea:focus { outline: none; border-color: var(--blood); }
+        .btn { align-self: flex-end; padding: 10px 25px; background: transparent; border: 1px solid var(--blood); color: var(--blood); font-family: 'IM Fell DW Pica', serif; text-transform: uppercase; cursor: pointer; transition: all 0.3s; }
+        .btn:hover { background: var(--blood); color: var(--paper); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Results Section */
+        #result-area { width: 100%; max-width: 1000px; display: none; grid-template-columns: 1fr 1.5fr; gap: 50px; margin-top: 60px; }
+        .polaroid-frame { background: white; padding: 15px 15px 60px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transform: rotate(-2deg); height: fit-content; }
+        .polaroid-frame img { width: 100%; height: auto; filter: sepia(0.2) contrast(1.1); display: block; }
+        .answer-text { line-height: 1.6; font-size: 1.25rem; white-space: pre-wrap; }
+        .question-echo { font-style: italic; color: var(--dust); margin-bottom: 30px; border-left: 2px solid var(--blood); padding-left: 20px; }
+
+        /* Share Container */
+        #share-container { margin-top: 30px; display: flex; gap: 10px; }
+
+        /* Footer */
+        .footer { margin-top: auto; text-align: center; font-size: 0.9rem; color: #A9A497; border-top: 1px solid #D9D4C7; padding: 40px 0; font-style: italic; max-width: 800px; width: 100%; }
+        
+        @media (max-width: 768px) { #result-area { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
+
     <div class="header">
-        <svg class="logo-svg" viewBox="0 0 24 24"><path d="M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z"/></svg>
-        <h1>The Red Bot Files</h1>
-    </div>
-    <nav class="nav-container">
-        <span class="active">Ask me Anything</span>
-        <span class="separator">/</span>
-        <a href="/cloud.html">Look Yonder</a>
-    </nav>
-    <div class="divider"></div>
-    <div class="container">
-        <textarea id="question-input" rows="2" placeholder="Write your letter here..."></textarea>
-        <div style="text-align: center;"><button onclick="askBot()">SUBMIT</button></div>
-        <div id="output-area">
-            <div id="display-question" class="user-question-display"></div>
-            <div class="content-wrapper">
-                <div id="photo-frame" class="polaroid"><img id="photo-img" src=""></div>
-                <div id="chat-box" class="response"></div>
-            </div>
-        </div>
-    </div>
-    <div class="footer">
-        This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for <a href="https://www.theredhandfiles.com/" target="_blank">The Red Hand Files</a>.
-        <br><br>
-        Made with ❤ by <a href="https://github.com/varioni" target="_blank">varioni</a>
-    </div>
-<script>
-    async function askBot() {
-        const input = document.getElementById('question-input');
-        const displayQuestion = document.getElementById('display-question');
-        const chatBox = document.getElementById('chat-box');
-        const photoFrame = document.getElementById('photo-frame');
-        const photoImg = document.getElementById('photo-img');
-        const qText = input.value.trim();
-        if (!qText) return;
-        displayQuestion.innerText = qText;
-        chatBox.innerText = "...";
-        photoFrame.style.display = 'none';
-        input.value = '';
-        try {
-            const res = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question: qText })
-            });
-            const data = await res.json();
-            chatBox.innerText = data.answer;
-            if (data.imageTheme) {
-                const parts = data.imageTheme.split('-');
-                const noun = parts[0];
-                const sig = parts[parts.length - 1];
-                photoImg.src = `https://loremflickr.com/400/400/stilllife,${noun}/all?lock=${sig}`;
-                photoImg.onload = () => { photoFrame.style.display = 'block'; };
-            }
-        } catch (e) { chatBox.innerText = "The archive is silent."; }
-    }
-</script>
-</body>
-</html>
+        <svg class="logo-svg" viewBox="0 0 24 24"><path d="M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1
