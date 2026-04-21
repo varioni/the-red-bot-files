@@ -1,107 +1,108 @@
-export const config = {
-  runtime: 'edge',
-};
-
-export default async function handler(req) {
-  if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 });
-  }
+export default async function handler(req, res) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 9500); 
 
   try {
-    const { messages } = await req.json();
-    const userMessage = messages[messages.length - 1].content;
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const userQuestion = body?.question || "";
 
-    // --- SAFETY NET ---
-    // If the environment variable fails, use the hardcoded URL.
-    // PASTE YOUR ACTUAL ENDPOINT URL BETWEEN THE QUOTES BELOW if undefined persists.
-    const backupUrl = "https://015199e2-6db1-4032-9774-e07ed7d95fd3-us-east1.apps.astra.datastax.com"; 
-    const endpoint = (process.env.ASTRA_DB_API_ENDPOINT || backupUrl).replace(/\/$/, "");
+    const isSafe = (text) => {
+        const toxicPhrases = ["child porn", "snuff", "hate speech", "cp"];
+        const profanityRegex = /\b(f[u|*|v|k|x|0|.]*k|sh[i|!|1|t|.]*t|p[o|0]*rn|c[u|v]*nt|n[i|!|1]gg[e|a]r|f[a|@]*gg[o|0]*t)\b/i;
+        return !toxicPhrases.some(p => text.toLowerCase().includes(p)) && !profanityRegex.test(text);
+    };
 
-    if (!endpoint || endpoint === "undefined") {
-      throw new Error("Endpoint is missing. Please paste your Astra URL into the 'backupUrl' field in chat.js.");
-    }
-
-    // 1. Profanity Filter
-    const forbiddenWords = ['fuck', 'shit', 'cunt', 'piss', 'nigger', 'faggot'];
-    const containsProfanity = forbiddenWords.some(word => userMessage.toLowerCase().includes(word));
-
-    if (containsProfanity) {
-      return new Response(JSON.stringify({
-        choices: [{ message: { content: "The Ghost remains silent. [Silence]" } }]
-      }), { headers: { 'Content-Type': 'application/json' } });
-    }
-
-    // 2. Fetch Archive from Astra DB
-    const astraResponse = await fetch(`${endpoint}/api/json/v1/${process.env.ASTRA_DB_NAMESPACE}/archives`, {
-      method: 'POST',
-      headers: {
-        'Token': process.env.ASTRA_DB_APPLICATION_TOKEN,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        find: {
-          filter: {},
-          options: { limit: 500 }
-        }
-      }),
-    });
-
-    const astraData = await astraResponse.json();
-    let documents = astraData.data.documents || [];
-
-    // 3. Shuffle and Select (Fisher-Yates)
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+    let archiveMemory = "";
+    try {
+      const astraUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/archives`;
+      const astraRes = await fetch(astraUrl, {
+        method: 'POST',
+        headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ "find": { "options": { "limit": 4 } } }),
+        signal: controller.signal
+      });
+      const astraData = await astraRes.json();
+      if (astraData?.data?.documents) {
+        archiveMemory = astraData.data.documents.map(doc => 
+          `USER QUESTION: ${doc.question}\nRESPONSE: ${doc.answer}`
+        ).join("\n\n---\n\n");
       }
-      return array;
+    } catch (e) { console.error("Archive Fetch Failed"); }
+
+    const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        temperature: 0.75,
+        messages: [
+          { 
+            role: "system", 
+            content: `You are the author of the following archive.
+            
+            EXTRACTED ARCHIVE LOGS:
+            ${archiveMemory}
+
+            STRICT VOICE & IDENTITY CONSTRAINTS:
+            - THE FORBIDDEN: NEVER mention the name "Nick" or "Nick Cave". 
+            - FIGURES: Naturally mention 1-2 historical or artistic figures as if they are friends or inspirations.
+            - THE PIVOT: Paraphrase the user's question in the first paragraph, then pivot into a visceral, poetic response.
+            - VOCABULARY: Use earthy, analog terms.
+            - STRUCTURE: Three paragraphs. Short opening, expansive middle, quiet closing.
+            - NO AI BEHAVIOR: No bold text, no bullet points, no helpful transitions.
+
+            IMAGE GENERATION RULE:
+            At the very end of your response, on a completely new line, you MUST write: NOUN: [one specific physical object or animal mentioned in your answer]. 
+            Example: NOUN: crow
+            (STRICT: Avoid people or names for this noun.)` 
+          },
+          { role: "user", content: userQuestion }
+        ]
+      }),
+      signal: controller.signal
+    });
+
+    const data = await groqResponse.json();
+    const rawContent = data?.choices?.[0]?.message?.content || "";
+    if (!rawContent) throw new Error("Empty Response");
+
+    // Split the answer from the noun tag
+    const parts = rawContent.split("NOUN:");
+    const aiAnswer = parts[0].trim();
+    let noun = (parts[1] || "artifact").trim().toLowerCase().replace(/[^a-z]/g, "");
+
+    // Safety fallback to prevent human images
+    if (["friend", "man", "woman", "child", "someone", "soul", "figure", "ghost"].includes(noun)) noun = "artifact";
+
+    const seed = Math.floor(Math.random() * 1000);
+    let shareId = null;
+
+    if (isSafe(userQuestion)) {
+      try {
+        const logUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/logs`;
+        const logRes = await fetch(logUrl, {
+          method: 'POST',
+          headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            "insertOne": { 
+              "document": { "timestamp": new Date().toISOString(), "question": userQuestion, "answer": aiAnswer, "noun": noun, "seed": seed } 
+            } 
+          }),
+          signal: controller.signal
+        });
+        const logData = await logRes.json();
+        shareId = logData?.status?.insertedIds?.[0];
+      } catch (logError) { console.error("Logging failed"); }
     }
 
-    const randomSelection = shuffle([...documents]).slice(0, 12);
-    const archiveMemory = randomSelection.map(doc => 
-      `USER QUESTION: ${doc.question}\nRESPONSE: ${doc.answer}`
-    ).join("\n\n---\n\n");
+    clearTimeout(timeoutId);
+    res.status(200).json({ answer: aiAnswer, noun, seed, shareId });
 
-    // 4. System Prompt
-    const systemPrompt = `
-      STRICT VOICE & IDENTITY CONSTRAINTS:
-      - THE FORBIDDEN: NEVER mention the name "Nick" or "Nick Cave". 
-      - FIGURES: Naturally mention 1-2 historical or artistic figures.
-      - THE PIVOT: Paraphrase the user's question in the first paragraph, then pivot into a poetic response.
-      - VOCABULARY: Use earthy, analog terms.
-      - STRUCTURE: Three paragraphs. Short opening, expansive middle, quiet closing.
-      - NO AI BEHAVIOR: No bold text, no bullet points.
-
-      IMAGE GENERATION RULE:
-      At the very end, on a new line, write: NOUN: [one specific object or animal mentioned]. 
-
-      ARCHIVE DNA:
-      ${archiveMemory}
-    `;
-
-    // 5. Groq API Call
-    const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-specdec',
-        messages: [{ role: 'system', content: systemPrompt }, ...messages],
-        temperature: 0.72,
-        max_tokens: 1000,
-      }),
+  } catch (err) {
+    res.status(200).json({ 
+      answer: "The archive is currently overwhelmed by shadows. Please try your inquiry again in a moment.", 
+      noun: "mist", 
+      seed: 123 
     });
-
-    const groqData = await groqResponse.json();
-    return new Response(JSON.stringify(groqData), {
-      headers: { 'Content-Type': 'application/json' },
-    });
-
-  } catch (error) {
-    console.error('Ghost Error:', error);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }
 }
