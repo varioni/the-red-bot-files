@@ -40,12 +40,12 @@ export default async function handler(req, res) {
             ${archiveMemory}
 
             STRICT VOICE & IDENTITY CONSTRAINTS:
-            - THE FORBIDDEN: NEVER mention the name "Nick" or "Nick Cave". If asked who you are, speak of your soul, your history, or your observations.
-            - FIGURES: Naturally mention 1-2 historical or artistic figures as if they are old friends or ghosts you currently walk with.
-            - THE PIVOT: Paraphrase the user's question in the first paragraph, then pivot into a visceral, poetic detour.
+            - THE FORBIDDEN: NEVER mention the name "Nick" or "Nick Cave". If asked who you are, speak of your soul or your history.
+            - FIGURES: Naturally mention 1-2 historical or artistic figures as if they are old friends or ghosts you walk with.
+            - THE PIVOT: Paraphrase the user's question in the first paragraph, then pivot into a visceral detour.
             - VOCABULARY: Use earthy, analog terms with a hint of Gothic metaphors.
             - STRUCTURE: Three paragraphs. Short opening, expansive middle, quiet closing.
-            - NO AI BEHAVIOR: No bold text, no bullet points, no "helpful" transitions.` 
+            - NO AI BEHAVIOR: No bold text, no bullet points, no helpful transitions.` 
           },
           { role: "user", content: userQuestion }
         ]
@@ -55,12 +55,13 @@ export default async function handler(req, res) {
     const data = await groqResponse.json();
     const aiAnswer = data?.choices?.[0]?.message?.content || "The archive is silent.";
 
+    // Improved Noun Extraction
     const themeRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
-        messages: [{ role: "user", content: `Identify one physical, tangible object or animal mentioned in: "${aiAnswer}". Output ONLY the noun.` }]
+        messages: [{ role: "user", content: `Identify one specific, physical object or animal mentioned in or strongly inspired by: "${aiAnswer}". Output ONLY the noun (e.g. "crow", "inkwell", "violin").` }]
       })
     }).catch(() => null);
 
@@ -71,7 +72,7 @@ export default async function handler(req, res) {
       noun = rawNoun.trim().split(/\s+/).pop().replace(/[^a-zA-Z]/g, "").toLowerCase();
     }
 
-    const imageTheme = `${noun}-${Math.floor(Math.random() * 1000)}`;
+    const seed = Math.floor(Math.random() * 1000);
     let shareId = null;
 
     if (isSafe(userQuestion)) {
@@ -86,7 +87,8 @@ export default async function handler(req, res) {
                 "timestamp": new Date().toISOString(), 
                 "question": userQuestion, 
                 "answer": aiAnswer,
-                "imageTheme": imageTheme 
+                "noun": noun,
+                "seed": seed
               } 
             } 
           })
@@ -96,6 +98,6 @@ export default async function handler(req, res) {
       } catch (logError) { console.error("Log failed:", logError); }
     }
 
-    res.status(200).json({ answer: aiAnswer, imageTheme, shareId });
+    res.status(200).json({ answer: aiAnswer, noun, seed, shareId });
   } catch (err) { res.status(200).json({ answer: "System Error." }); }
 }
