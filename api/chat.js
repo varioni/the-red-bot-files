@@ -18,12 +18,26 @@ export default async function handler(req, res) {
       const astraRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ "find": { "options": { "limit": 4 } } }),
+        // Fetch a large pool (100) to ensure a good random mix
+        body: JSON.stringify({ "find": { "options": { "limit": 100 } } }),
         signal: controller.signal
       });
+      
       const astraData = await astraRes.json();
+      
       if (astraData?.data?.documents) {
-        archiveMemory = astraData.data.documents.map(doc => 
+        let documents = astraData.data.documents;
+
+        // --- RANDOMIZER LOGIC ---
+        // Shuffles the 100 fetched documents and picks 10 random ones
+        for (let i = documents.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [documents[i], documents[j]] = [documents[j], documents[i]];
+        }
+        
+        const selection = documents.slice(0, 10);
+        
+        archiveMemory = selection.map(doc => 
           `USER QUESTION: ${doc.question}\nRESPONSE: ${doc.answer}`
         ).join("\n\n---\n\n");
       }
@@ -66,12 +80,10 @@ export default async function handler(req, res) {
     const rawContent = data?.choices?.[0]?.message?.content || "";
     if (!rawContent) throw new Error("Empty Response");
 
-    // Split the answer from the noun tag
     const parts = rawContent.split("NOUN:");
     const aiAnswer = parts[0].trim();
     let noun = (parts[1] || "artifact").trim().toLowerCase().replace(/[^a-z]/g, "");
 
-    // Safety fallback to prevent human images
     if (["friend", "man", "woman", "child", "someone", "soul", "figure", "ghost"].includes(noun)) noun = "artifact";
 
     const seed = Math.floor(Math.random() * 1000);
