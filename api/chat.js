@@ -14,30 +14,28 @@ export default async function handler(req, res) {
 
     let archiveMemory = "";
     try {
+      // We have 212 entries. We pick a random starting point to get a fresh mix every time.
+      const randomSkip = Math.floor(Math.random() * 200); 
+      
       const astraUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/archives`;
       const astraRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-        // Fetch a large pool (100) to ensure a good random mix
-        body: JSON.stringify({ "find": { "options": { "limit": 100 } } }),
+        body: JSON.stringify({ 
+          "find": { 
+            "options": { 
+              "limit": 10, 
+              "skip": randomSkip 
+            } 
+          } 
+        }),
         signal: controller.signal
       });
       
       const astraData = await astraRes.json();
       
       if (astraData?.data?.documents) {
-        let documents = astraData.data.documents;
-
-        // --- RANDOMIZER LOGIC ---
-        // Shuffles the 100 fetched documents and picks 10 random ones
-        for (let i = documents.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [documents[i], documents[j]] = [documents[j], documents[i]];
-        }
-        
-        const selection = documents.slice(0, 10);
-        
-        archiveMemory = selection.map(doc => 
+        archiveMemory = astraData.data.documents.map(doc => 
           `USER QUESTION: ${doc.question}\nRESPONSE: ${doc.answer}`
         ).join("\n\n---\n\n");
       }
