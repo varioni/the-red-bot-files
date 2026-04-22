@@ -1,5 +1,6 @@
 export default async function handler(req, res) {
   const controller = new AbortController();
+  // 9.5 seconds is the safety threshold for Vercel Free tier execution
   const timeoutId = setTimeout(() => controller.abort(), 9500); 
 
   try {
@@ -14,7 +15,8 @@ export default async function handler(req, res) {
 
     let archiveMemory = "";
     try {
-      // We have 212 entries. We pick a random starting point to get a fresh mix every time.
+      // Optimization: Fetching 5 documents instead of 10 or more reduces data transfer time.
+      // randomSkip ensures a fresh selection from the 212 entries.
       const randomSkip = Math.floor(Math.random() * 200); 
       
       const astraUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/archives`;
@@ -24,7 +26,7 @@ export default async function handler(req, res) {
         body: JSON.stringify({ 
           "find": { 
             "options": { 
-              "limit": 10, 
+              "limit": 5, 
               "skip": randomSkip 
             } 
           } 
@@ -47,6 +49,8 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         temperature: 0.75,
+        // Optimization: Reducing max_tokens to 500 speeds up generation and preserves rate limits.
+        max_tokens: 500,
         messages: [
           { 
             role: "system", 
