@@ -12,29 +12,20 @@ export default async function handler(req, res) {
         return !toxicPhrases.some(p => text.toLowerCase().includes(p)) && !profanityRegex.test(text);
     };
 
-    // 1. Fetch Archive with error handling
     let archiveMemory = "";
     try {
       const randomSkip = Math.floor(Math.random() * 150); 
       const astraUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/archives`;
-      
       const astraRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          "find": { 
-            "filter": {}, 
-            "options": { "limit": 50, "skip": randomSkip } 
-          } 
-        }),
+        body: JSON.stringify({ "find": { "filter": {}, "options": { "limit": 50, "skip": randomSkip } } }),
         signal: controller.signal
       });
-      
       if (astraRes.ok) {
         const astraData = await astraRes.json();
         let documents = astraData?.data?.documents || [];
         if (documents.length > 0) {
-          // Shuffle and pick 8
           for (let i = documents.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [documents[i], documents[j]] = [documents[j], documents[i]];
@@ -44,11 +35,8 @@ export default async function handler(req, res) {
           ).join("\n\n---\n\n");
         }
       }
-    } catch (e) { 
-      console.error("Archive fetch failed, proceeding with generic memory.");
-    }
+    } catch (e) { console.error("Archive fetch failed."); }
 
-    // 2. Groq AI Call with Response Validation
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
@@ -81,19 +69,15 @@ export default async function handler(req, res) {
       signal: controller.signal
     });
 
-    // Check if Groq failed (e.g., 429 Rate Limit or 500 Error)
     if (!groqResponse.ok) {
       const errorData = await groqResponse.json();
-      console.error("Groq API Error:", errorData);
-      throw new Error(errorData.error?.message || "AI Service Busy");
+      throw new Error(errorData.error?.message || "AI Busy");
     }
 
     const groqData = await groqResponse.json();
     const rawContent = groqData?.choices?.[0]?.message?.content || "";
-    
     if (!rawContent) throw new Error("Empty Response");
 
-    // 3. Process Response and Noun
     const parts = rawContent.split("NOUN:");
     const aiAnswer = parts[0].trim();
     let noun = (parts[1] || "artifact").trim().toLowerCase().replace(/[^a-z]/g, "");
@@ -102,7 +86,6 @@ export default async function handler(req, res) {
     const seed = Math.floor(Math.random() * 1000);
     let shareId = null;
 
-    // 4. Background Logging (Astra DB)
     if (isSafe(userQuestion)) {
       try {
         const logUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/logs`;
@@ -114,20 +97,14 @@ export default async function handler(req, res) {
         });
         const logData = await logRes.json();
         shareId = logData?.status?.insertedIds?.[0];
-      } catch (logError) { 
-        console.error("Background logging failed, but user still gets response."); 
-      }
+      } catch (logError) { console.error("Logging failed."); }
     }
 
     clearTimeout(timeoutId);
     return res.status(200).json({ answer: aiAnswer, noun, seed, shareId });
 
   } catch (err) {
-    console.error("Detailed Error Log:", err.message);
-    return res.status(200).json({ 
-      answer: "The archive is currently overwhelmed by shadows. [Silence]", 
-      noun: "mist", 
-      seed: 123 
-    });
+    console.error("Error:", err.message);
+    return res.status(200).json({ answer: "The archive is currently overwhelmed by shadows. [Silence]", noun: "mist", seed: 123 });
   }
 }
