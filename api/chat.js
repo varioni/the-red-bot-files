@@ -12,53 +12,49 @@ export default async function handler(req, res) {
         return !toxicPhrases.some(p => text.toLowerCase().includes(p)) && !profanityRegex.test(text);
     };
 
+    // 1. Fetch Archive with error handling
     let archiveMemory = "";
     try {
-      // We pick a random starting point and fetch 50 entries
-      // This is a "hybrid" approach: random start + random shuffle
       const randomSkip = Math.floor(Math.random() * 150); 
-      
       const astraUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/archives`;
+      
       const astraRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           "find": { 
-            "filter": {}, // Added explicit filter
+            "filter": {}, 
             "options": { "limit": 50, "skip": randomSkip } 
           } 
         }),
         signal: controller.signal
       });
       
-      const astraData = await astraRes.json();
-      let documents = astraData?.data?.documents || [];
-
-      if (documents.length > 0) {
-        // --- SHUFFLE THE 50 ENTRIES ---
-        for (let i = documents.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [documents[i], documents[j]] = [documents[j], documents[i]];
+      if (astraRes.ok) {
+        const astraData = await astraRes.json();
+        let documents = astraData?.data?.documents || [];
+        if (documents.length > 0) {
+          // Shuffle and pick 8
+          for (let i = documents.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [documents[i], documents[j]] = [documents[j], documents[i]];
+          }
+          archiveMemory = documents.slice(0, 8).map(doc => 
+            `USER QUESTION: ${doc.question}\nRESPONSE: ${doc.answer}`
+          ).join("\n\n---\n\n");
         }
-        
-        // Take 8 for context (8 is the "sweet spot" for speed and variety)
-        const selection = documents.slice(0, 8);
-        
-        archiveMemory = selection.map(doc => 
-          `USER QUESTION: ${doc.question}\nRESPONSE: ${doc.answer}`
-        ).join("\n\n---\n\n");
       }
     } catch (e) { 
-      console.error("Archive Fetch Failed:", e);
-      // If archive fails, we keep archiveMemory empty but let the AI answer anyway
+      console.error("Archive fetch failed, proceeding with generic memory.");
     }
 
+    // 2. Groq AI Call with Response Validation
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
-        temperature: 0.7,
+        temperature: 0.72,
         max_tokens: 800,
         messages: [
           { 
@@ -72,7 +68,7 @@ export default async function handler(req, res) {
             - THE FORBIDDEN: NEVER mention the name "Nick" or "Nick Cave". 
             - SUBSTANCE: Do not hide behind vague metaphors. Arrive at a concrete answer, a personal truth, or a specific piece of advice. If the user asks a question, answer it directly.
             - GROUNDEDNESS: Write in poetic language using the gritty, analog reality found in your archives.
-            - THE PIVOT: Paraphrase the user's question in the first paragraph. In the second paragraph, provide a "hard-won" insight or direct reflection. The third paragraph is for a quiet, personal closing answering the question.
+            - THE PIVOT: Paraphrase the user's question in the first paragraph. In the second paragraph, provide a "hard-won" insight or direct reflection. The third paragraph is for a quiet, personal closing.
             - FIGURES: Naturally mention 1-2 historical/artistic figures ONLY if they truly fit the context of the answer.
             - STRUCTURE: Three paragraphs only. No bold text, no bullet points.
 
@@ -85,11 +81,19 @@ export default async function handler(req, res) {
       signal: controller.signal
     });
 
+    // Check if Groq failed (e.g., 429 Rate Limit or 500 Error)
+    if (!groqResponse.ok) {
+      const errorData = await groqResponse.json();
+      console.error("Groq API Error:", errorData);
+      throw new Error(errorData.error?.message || "AI Service Busy");
+    }
+
     const groqData = await groqResponse.json();
     const rawContent = groqData?.choices?.[0]?.message?.content || "";
     
-    if (!rawContent) throw new Error("Empty Response from Groq");
+    if (!rawContent) throw new Error("Empty Response");
 
+    // 3. Process Response and Noun
     const parts = rawContent.split("NOUN:");
     const aiAnswer = parts[0].trim();
     let noun = (parts[1] || "artifact").trim().toLowerCase().replace(/[^a-z]/g, "");
@@ -98,6 +102,7 @@ export default async function handler(req, res) {
     const seed = Math.floor(Math.random() * 1000);
     let shareId = null;
 
+    // 4. Background Logging (Astra DB)
     if (isSafe(userQuestion)) {
       try {
         const logUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/logs`;
@@ -109,14 +114,20 @@ export default async function handler(req, res) {
         });
         const logData = await logRes.json();
         shareId = logData?.status?.insertedIds?.[0];
-      } catch (logError) { console.error("Logging failed"); }
+      } catch (logError) { 
+        console.error("Background logging failed, but user still gets response."); 
+      }
     }
 
     clearTimeout(timeoutId);
-    res.status(200).json({ answer: aiAnswer, noun, seed, shareId });
+    return res.status(200).json({ answer: aiAnswer, noun, seed, shareId });
 
   } catch (err) {
-    console.error("Main Handler Error:", err);
-    res.status(200).json({ answer: "The archive is currently overwhelmed. [Silence]", noun: "mist", seed: 123 });
+    console.error("Detailed Error Log:", err.message);
+    return res.status(200).json({ 
+      answer: "The archive is currently overwhelmed by shadows. [Silence]", 
+      noun: "mist", 
+      seed: 123 
+    });
   }
 }
