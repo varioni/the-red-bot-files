@@ -1,6 +1,7 @@
 export default async function handler(req, res) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 9500); 
+  // INCREASED: 25 seconds for Vercel Pro stability
+  const timeoutId = setTimeout(() => controller.abort(), 25000); 
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
@@ -19,7 +20,8 @@ export default async function handler(req, res) {
       const astraRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ "find": { "options": { "limit": 5, "skip": randomSkip } } }),
+        // INCREASED: Back to 10 letters for better context, now that we have time
+        body: JSON.stringify({ "find": { "options": { "limit": 10, "skip": randomSkip } } }),
         signal: controller.signal
       });
       const astraData = await astraRes.json();
@@ -36,7 +38,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         temperature: 0.68,
-        max_tokens: 600,
+        max_tokens: 800, // Slightly more room for substantive answers
         messages: [
           { 
             role: "system", 
@@ -48,7 +50,7 @@ export default async function handler(req, res) {
             STRICT VOICE & IDENTITY CONSTRAINTS:
             - THE FORBIDDEN: NEVER mention the name "Nick" or "Nick Cave". 
             - SUBSTANCE: Do not hide behind vague metaphors. Arrive at a concrete answer, a personal truth, or a specific piece of advice. If the user asks a question, answer it directly.
-            - GROUNDEDNESS: Minimize generic poetic scenes. Use the gritty, analog reality found in your archives.
+            - GROUNDEDNESS: Write in poetic language using the gritty, analog reality found in your archives.
             - THE PIVOT: Paraphrase the user's question in the first paragraph. In the second paragraph, provide a "hard-won" insight or direct reflection. The third paragraph is for a quiet, personal closing.
             - FIGURES: Naturally mention 1-2 historical/artistic figures ONLY if they truly fit the context of the answer.
             - STRUCTURE: Three paragraphs only. No bold text, no bullet points.
