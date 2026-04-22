@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   const controller = new AbortController();
-  // INCREASED: 25 seconds for Vercel Pro stability
+  // Vercel Pro timeout set to 25 seconds
   const timeoutId = setTimeout(() => controller.abort(), 25000); 
 
   try {
@@ -15,18 +15,29 @@ export default async function handler(req, res) {
 
     let archiveMemory = "";
     try {
-      const randomSkip = Math.floor(Math.random() * 200); 
       const astraUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/archives`;
       const astraRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-        // INCREASED: Back to 10 letters for better context, now that we have time
-        body: JSON.stringify({ "find": { "options": { "limit": 10, "skip": randomSkip } } }),
+        // Fetch all 212 entries to ensure true variety
+        body: JSON.stringify({ "find": { "options": { "limit": 1000 } } }),
         signal: controller.signal
       });
+      
       const astraData = await astraRes.json();
-      if (astraData?.data?.documents) {
-        archiveMemory = astraData.data.documents.map(doc => 
+      let documents = astraData?.data?.documents || [];
+
+      if (documents.length > 0) {
+        // --- TRUE RANDOM SHUFFLE ---
+        for (let i = documents.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [documents[i], documents[j]] = [documents[j], documents[i]];
+        }
+        
+        // Select 10 random entries for the prompt context
+        const selection = documents.slice(0, 10);
+        
+        archiveMemory = selection.map(doc => 
           `USER QUESTION: ${doc.question}\nRESPONSE: ${doc.answer}`
         ).join("\n\n---\n\n");
       }
@@ -37,8 +48,8 @@ export default async function handler(req, res) {
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
-        temperature: 0.68,
-        max_tokens: 800, // Slightly more room for substantive answers
+        temperature: 0.7,
+        max_tokens: 800,
         messages: [
           { 
             role: "system", 
