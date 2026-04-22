@@ -1,6 +1,5 @@
 export default async function handler(req, res) {
   const controller = new AbortController();
-  // Vercel Pro timeout set to 25 seconds
   const timeoutId = setTimeout(() => controller.abort(), 25000); 
 
   try {
@@ -15,12 +14,20 @@ export default async function handler(req, res) {
 
     let archiveMemory = "";
     try {
+      // We pick a random starting point and fetch 50 entries
+      // This is a "hybrid" approach: random start + random shuffle
+      const randomSkip = Math.floor(Math.random() * 150); 
+      
       const astraUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/archives`;
       const astraRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-        // Fetch all 212 entries to ensure true variety
-        body: JSON.stringify({ "find": { "options": { "limit": 1000 } } }),
+        body: JSON.stringify({ 
+          "find": { 
+            "filter": {}, // Added explicit filter
+            "options": { "limit": 50, "skip": randomSkip } 
+          } 
+        }),
         signal: controller.signal
       });
       
@@ -28,20 +35,23 @@ export default async function handler(req, res) {
       let documents = astraData?.data?.documents || [];
 
       if (documents.length > 0) {
-        // --- TRUE RANDOM SHUFFLE ---
+        // --- SHUFFLE THE 50 ENTRIES ---
         for (let i = documents.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [documents[i], documents[j]] = [documents[j], documents[i]];
         }
         
-        // Select 10 random entries for the prompt context
-        const selection = documents.slice(0, 10);
+        // Take 8 for context (8 is the "sweet spot" for speed and variety)
+        const selection = documents.slice(0, 8);
         
         archiveMemory = selection.map(doc => 
           `USER QUESTION: ${doc.question}\nRESPONSE: ${doc.answer}`
         ).join("\n\n---\n\n");
       }
-    } catch (e) { console.error("Archive Fetch Failed"); }
+    } catch (e) { 
+      console.error("Archive Fetch Failed:", e);
+      // If archive fails, we keep archiveMemory empty but let the AI answer anyway
+    }
 
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -62,7 +72,7 @@ export default async function handler(req, res) {
             - THE FORBIDDEN: NEVER mention the name "Nick" or "Nick Cave". 
             - SUBSTANCE: Do not hide behind vague metaphors. Arrive at a concrete answer, a personal truth, or a specific piece of advice. If the user asks a question, answer it directly.
             - GROUNDEDNESS: Write in poetic language using the gritty, analog reality found in your archives.
-            - THE PIVOT: Paraphrase the user's question in the first paragraph. In the second paragraph, provide a "hard-won" insight or direct reflection. The third paragraph is for a quiet, personal closing.
+            - THE PIVOT: Paraphrase the user's question in the first paragraph. In the second paragraph, provide a "hard-won" insight or direct reflection. The third paragraph is for a quiet, personal closing answering the question.
             - FIGURES: Naturally mention 1-2 historical/artistic figures ONLY if they truly fit the context of the answer.
             - STRUCTURE: Three paragraphs only. No bold text, no bullet points.
 
@@ -75,9 +85,10 @@ export default async function handler(req, res) {
       signal: controller.signal
     });
 
-    const data = await groqResponse.json();
-    const rawContent = data?.choices?.[0]?.message?.content || "";
-    if (!rawContent) throw new Error("Empty Response");
+    const groqData = await groqResponse.json();
+    const rawContent = groqData?.choices?.[0]?.message?.content || "";
+    
+    if (!rawContent) throw new Error("Empty Response from Groq");
 
     const parts = rawContent.split("NOUN:");
     const aiAnswer = parts[0].trim();
@@ -105,6 +116,7 @@ export default async function handler(req, res) {
     res.status(200).json({ answer: aiAnswer, noun, seed, shareId });
 
   } catch (err) {
+    console.error("Main Handler Error:", err);
     res.status(200).json({ answer: "The archive is currently overwhelmed. [Silence]", noun: "mist", seed: 123 });
   }
 }
