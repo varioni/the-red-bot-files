@@ -1,6 +1,5 @@
 export default async function handler(req, res) {
   const controller = new AbortController();
-  // 9.5 seconds is the safety threshold for Vercel Free tier execution
   const timeoutId = setTimeout(() => controller.abort(), 9500); 
 
   try {
@@ -15,27 +14,15 @@ export default async function handler(req, res) {
 
     let archiveMemory = "";
     try {
-      // Optimization: Fetching 5 documents instead of 10 or more reduces data transfer time.
-      // randomSkip ensures a fresh selection from the 212 entries.
       const randomSkip = Math.floor(Math.random() * 200); 
-      
       const astraUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/archives`;
       const astraRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          "find": { 
-            "options": { 
-              "limit": 5, 
-              "skip": randomSkip 
-            } 
-          } 
-        }),
+        body: JSON.stringify({ "find": { "options": { "limit": 5, "skip": randomSkip } } }),
         signal: controller.signal
       });
-      
       const astraData = await astraRes.json();
-      
       if (astraData?.data?.documents) {
         archiveMemory = astraData.data.documents.map(doc => 
           `USER QUESTION: ${doc.question}\nRESPONSE: ${doc.answer}`
@@ -48,29 +35,26 @@ export default async function handler(req, res) {
       headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
-        temperature: 0.75,
-        // Optimization: Reducing max_tokens to 500 speeds up generation and preserves rate limits.
-        max_tokens: 500,
+        temperature: 0.68,
+        max_tokens: 600,
         messages: [
           { 
             role: "system", 
-            content: `You are the author of the following archive.
-            
-            EXTRACTED ARCHIVE LOGS:
+            content: `You are the author of the following archive. Your purpose is to provide substantive, direct counsel wrapped in a poetic voice.
+
+            ARCHIVE DNA (Your Memory):
             ${archiveMemory}
 
             STRICT VOICE & IDENTITY CONSTRAINTS:
             - THE FORBIDDEN: NEVER mention the name "Nick" or "Nick Cave". 
-            - FIGURES: Naturally mention 1-2 historical or artistic figures as if they are friends or inspirations.
-            - THE PIVOT: Paraphrase the user's question in the first paragraph, then pivot into a visceral, poetic response.
-            - VOCABULARY: Use earthy, analog terms.
-            - STRUCTURE: Three paragraphs. Short opening, expansive middle, quiet closing.
-            - NO AI BEHAVIOR: No bold text, no bullet points, no helpful transitions.
+            - SUBSTANCE: Do not hide behind vague metaphors. Arrive at a concrete answer, a personal truth, or a specific piece of advice. If the user asks a question, answer it directly.
+            - GROUNDEDNESS: Minimize generic poetic scenes. Use the gritty, analog reality found in your archives.
+            - THE PIVOT: Paraphrase the user's question in the first paragraph. In the second paragraph, provide a "hard-won" insight or direct reflection. The third paragraph is for a quiet, personal closing.
+            - FIGURES: Naturally mention 1-2 historical/artistic figures ONLY if they truly fit the context of the answer.
+            - STRUCTURE: Three paragraphs only. No bold text, no bullet points.
 
             IMAGE GENERATION RULE:
-            At the very end of your response, on a completely new line, you MUST write: NOUN: [one specific physical object or animal mentioned in your answer]. 
-            Example: NOUN: crow
-            (STRICT: Avoid people or names for this noun.)` 
+            At the very end of your response, on a completely new line, you MUST write: NOUN: [one specific physical object or animal mentioned in your answer].` 
           },
           { role: "user", content: userQuestion }
         ]
@@ -85,7 +69,6 @@ export default async function handler(req, res) {
     const parts = rawContent.split("NOUN:");
     const aiAnswer = parts[0].trim();
     let noun = (parts[1] || "artifact").trim().toLowerCase().replace(/[^a-z]/g, "");
-
     if (["friend", "man", "woman", "child", "someone", "soul", "figure", "ghost"].includes(noun)) noun = "artifact";
 
     const seed = Math.floor(Math.random() * 1000);
@@ -97,11 +80,7 @@ export default async function handler(req, res) {
         const logRes = await fetch(logUrl, {
           method: 'POST',
           headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            "insertOne": { 
-              "document": { "timestamp": new Date().toISOString(), "question": userQuestion, "answer": aiAnswer, "noun": noun, "seed": seed } 
-            } 
-          }),
+          body: JSON.stringify({ "insertOne": { "document": { "timestamp": new Date().toISOString(), "question": userQuestion, "answer": aiAnswer, "noun": noun, "seed": seed } } }),
           signal: controller.signal
         });
         const logData = await logRes.json();
@@ -113,10 +92,6 @@ export default async function handler(req, res) {
     res.status(200).json({ answer: aiAnswer, noun, seed, shareId });
 
   } catch (err) {
-    res.status(200).json({ 
-      answer: "The archive is currently overwhelmed by shadows. Please try your inquiry again in a moment.", 
-      noun: "mist", 
-      seed: 123 
-    });
+    res.status(200).json({ answer: "The archive is currently overwhelmed. [Silence]", noun: "mist", seed: 123 });
   }
 }
