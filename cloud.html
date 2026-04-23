@@ -5,58 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Archive | Themes</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
     <style>
-        body { 
-            background-color: #f4f1ea; 
-            color: #2c2c2c; 
-            font-family: 'Courier New', monospace; 
-            display: flex; 
-            flex-direction: column; 
-            min-height: 100vh; 
-            margin: 0; 
+        body {
+            background-color: #f4f1ea;
+            color: #2c2c2c;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
         }
-        header { 
-            padding: 20px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 1px solid #dcdcdc; 
+        header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #dcdcdc;
         }
-        .logo { width: 40px; height: auto; } /* 40px logo constraint */
-        nav a { 
-            text-decoration: none; 
-            color: #2c2c2c; 
-            margin-left: 20px; 
-            font-weight: bold; 
-            font-size: 0.9rem; 
+        .logo {
+            width: 40px; /* Locked at 40px */
+            height: auto;
         }
-        main { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            padding: 40px 20px; 
+        nav a {
+            text-decoration: none;
+            color: #2c2c2c;
+            margin-left: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
         }
-        h1 { font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 30px; }
-        #cloud-container { width: 100%; max-width: 800px; height: 500px; position: relative; }
-        canvas { width: 100% !important; height: 100% !important; }
-        footer { 
-            padding: 40px 20px; 
-            text-align: center; 
-            font-size: 0.75rem; 
-            color: #666; 
-            border-top: 1px solid #dcdcdc; 
-            line-height: 1.6; 
+        main {
+            flex: 1;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        #status { font-style: italic; color: #999; margin-top: 20px; }
+        h1 {
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+        }
+        #cloud-container {
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+        .word {
+            transition: transform 0.2s;
+            cursor: default;
+        }
+        .word:hover {
+            transform: scale(1.1);
+            color: #000;
+        }
+        footer {
+            padding: 40px 20px;
+            text-align: center;
+            font-size: 0.75rem;
+            line-height: 1.6;
+            color: #777;
+            border-top: 1px solid #dcdcdc;
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <a href="index.html"><img src="logo.png" alt="Logo" class="logo"></a>
+        <a href="index.html">
+            <img src="logo.png" alt="Logo" class="logo">
+        </a>
         <nav>
             <a href="index.html">INQUIRY</a>
             <a href="cloud.html">THEMES</a>
@@ -66,9 +88,7 @@
     <main>
         <h1>Thematic Resonance</h1>
         <div id="cloud-container">
-            <canvas id="cloud-canvas"></canvas>
-        </div>
-        <div id="status">Sifting through the logs...</div>
+            </div>
     </main>
 
     <footer>
@@ -76,41 +96,26 @@
     </footer>
 
     <script>
-        async function initCloud() {
-            const status = document.getElementById('status');
-            const canvas = document.getElementById('cloud-canvas');
+        async function fetchCloud() {
             const container = document.getElementById('cloud-container');
-
-            canvas.width = container.offsetWidth;
-            canvas.height = container.offsetHeight;
-
             try {
-                // Ensure this path matches your API filename exactly
                 const response = await fetch('/api/wordcloud');
-                const list = await response.json();
+                const data = await response.json();
 
-                if (!Array.isArray(list)) throw new Error("Data format error");
+                if (data.error) throw new Error(data.error);
 
-                WordCloud(canvas, {
-                    list: list,
-                    gridSize: 10,
-                    weightFactor: 1,
-                    fontFamily: 'Courier New, monospace',
-                    color: '#2c2c2c',
-                    rotateRatio: 0,
-                    backgroundColor: 'transparent',
-                    drawOutOfBound: false
-                });
+                container.innerHTML = data.map(item => `
+                    <span class="word" style="font-size: ${item.size}px; opacity: ${Math.max(0.4, item.size / 100)};">
+                        ${item.text}
+                    </span>
+                `).join('');
 
-                status.style.display = 'none';
             } catch (err) {
                 console.error(err);
-                status.innerText = "The cloud is currently obscured.";
+                container.innerHTML = '<p style="font-style: italic; color: #999;">The archive is currently overwhelmed by shadows.</p>';
             }
         }
-
-        window.addEventListener('load', initCloud);
-        window.addEventListener('resize', initCloud);
+        fetchCloud();
     </script>
 </body>
 </html>
