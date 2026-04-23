@@ -11,35 +11,37 @@ export default async function handler(req, res) {
     const astraData = await astraRes.json();
     const documents = astraData?.data?.documents || [];
     
-    // Combine questions and answers for a full thematic picture
+    // Combining question and answer to get a full thematic picture
     const fullText = documents.map(doc => `${doc.question} ${doc.answer}`).join(" ").toLowerCase();
     const words = fullText.match(/\b(\w+)\b/g);
 
-    // THEMATIC FILTER: A massive list of "non-theme" filler words to ignore
-    const fillerWords = new Set([
-        "just", "really", "thing", "things", "something", "anything", "nothing", 
-        "maybe", "actually", "even", "also", "back", "still", "through", "because", 
-        "around", "much", "very", "well", "look", "said", "take", "come", "where", 
-        "there", "their", "which", "when", "been", "were", "what", "could", "should", 
-        "would", "does", "then", "them", "these", "here", "being", "your", "they",
-        "have", "with", "from", "that", "this", "about", "some", "into", "other"
+    // EXPANDED FILTER: Specifically targeting the filler words you wanted gone
+    const stopWords = new Set([
+        "the", "and", "that", "this", "with", "from", "your", "they", "have", "will", 
+        "would", "there", "their", "which", "when", "been", "were", "what", "through", 
+        "also", "could", "should", "does", "then", "them", "these", "even", "here", 
+        "where", "being", "just", "really", "thing", "things", "something", "maybe", 
+        "actually", "back", "still", "around", "much", "very", "well", "look", "said", 
+        "way", "some", "take", "come", "about", "into", "other", "more"
     ]);
 
     const counts = {};
     if (words) {
       words.forEach(word => {
-        // Only keep words longer than 3 letters that aren't in our filler list
-        if (word.length > 3 && !fillerWords.has(word)) {
+        if (word.length > 3 && !stopWords.has(word)) {
           counts[word] = (counts[word] || 0) + 1;
         }
       });
     }
 
-    // Convert to the [word, weight] format required by WordCloud2
     const cloudData = Object.keys(counts)
-      .map(word => [word, 15 + (counts[word] * 8)]) 
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 80); // Top 80 themes
+      .map(word => ({
+        text: word,
+        // Restoring your "Buffed" size logic
+        size: 22 + (counts[word] * 12) 
+      }))
+      .sort((a, b) => b.size - a.size)
+      .slice(0, 120);
 
     res.status(200).json(cloudData);
   } catch (err) {
