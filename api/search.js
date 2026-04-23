@@ -9,13 +9,13 @@ export default async function handler(req, res) {
     const astraRes = await fetch(astraUrl, {
       method: 'POST',
       headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ "find": { "options": { "limit": 200 } } })
+      body: JSON.stringify({ "find": { "options": { "limit": 300 } } })
     });
 
     const astraData = await astraRes.json();
     const documents = astraData?.data?.documents || [];
     
-    // STRICT FILTER: Only matches where the tag is in the QUESTION
+    // STRICT FILTER: Match the tag in the question
     const matches = documents.filter(doc => {
         const question = (doc.question || "").toLowerCase();
         return question.includes(tag.toLowerCase());
