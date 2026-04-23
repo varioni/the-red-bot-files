@@ -14,36 +14,31 @@ export default async function handler(req, res) {
 
     let archiveMemory = "";
     try {
-      const randomSkip = Math.floor(Math.random() * 150); 
       const astraUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/archives`;
       const astraRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ "find": { "filter": {}, "options": { "limit": 50, "skip": randomSkip } } }),
+        body: JSON.stringify({ "find": { "options": { "limit": 10 } } }), // Back to 10 entries now that limits are gone
         signal: controller.signal
       });
-      if (astraRes.ok) {
-        const astraData = await astraRes.json();
-        let documents = astraData?.data?.documents || [];
-        if (documents.length > 0) {
-          for (let i = documents.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [documents[i], documents[j]] = [documents[j], documents[i]];
-          }
-          archiveMemory = documents.slice(0, 8).map(doc => 
-            `USER QUESTION: ${doc.question}\nRESPONSE: ${doc.answer}`
-          ).join("\n\n---\n\n");
-        }
+      const astraData = await astraRes.json();
+      if (astraData?.data?.documents) {
+        archiveMemory = astraData.data.documents.map(doc => 
+          `USER QUESTION: ${doc.question}\nRESPONSE: ${doc.answer}`
+        ).join("\n\n---\n\n");
       }
-    } catch (e) { console.error("Archive fetch failed."); }
+    } catch (e) { console.error("Archive Fetch Failed"); }
 
-    const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
-      headers: { "Authorization": `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://www.theredbotfiles.com", // Optional, but good for OpenRouter
+        "X-Title": "The Red Bot Files"
+      },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        temperature: 0.72,
-        max_tokens: 800,
+        model: "meta-llama/llama-3.3-70b-instruct", // The high-quality model
         messages: [
           { 
             role: "system", 
@@ -69,13 +64,8 @@ export default async function handler(req, res) {
       signal: controller.signal
     });
 
-    if (!groqResponse.ok) {
-      const errorData = await groqResponse.json();
-      throw new Error(errorData.error?.message || "AI Busy");
-    }
-
-    const groqData = await groqResponse.json();
-    const rawContent = groqData?.choices?.[0]?.message?.content || "";
+    const data = await response.json();
+    const rawContent = data?.choices?.[0]?.message?.content || "";
     if (!rawContent) throw new Error("Empty Response");
 
     const parts = rawContent.split("NOUN:");
@@ -97,14 +87,13 @@ export default async function handler(req, res) {
         });
         const logData = await logRes.json();
         shareId = logData?.status?.insertedIds?.[0];
-      } catch (logError) { console.error("Logging failed."); }
+      } catch (logError) { console.error("Logging failed"); }
     }
 
     clearTimeout(timeoutId);
-    return res.status(200).json({ answer: aiAnswer, noun, seed, shareId });
+    res.status(200).json({ answer: aiAnswer, noun, seed, shareId });
 
   } catch (err) {
-    console.error("Error:", err.message);
-    return res.status(200).json({ answer: "The archive is currently overwhelmed by shadows. [Silence]", noun: "mist", seed: 123 });
+    res.status(200).json({ answer: "The archive is currently overwhelmed by shadows. [Silence]", noun: "mist", seed: 123 });
   }
 }
