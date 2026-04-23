@@ -28,9 +28,10 @@
         .modal-close { position: sticky; top: 0; float: right; cursor: pointer; font-family: 'IM Fell DW Pica'; font-size: 1.5rem; color: #8B1D20; }
         .result-item { margin-bottom: 60px; padding-bottom: 40px; border-bottom: 1px solid #D9D4C7; }
         .result-q { font-weight: bold; font-style: italic; margin-bottom: 20px; font-size: 1.2rem; color: #8B1D20; }
-        /* Preserve the three-paragraph layout */
         .result-a { line-height: 1.7; color: #2c2c2c; white-space: pre-wrap; margin-bottom: 25px; font-size: 1.05rem; }
-        .result-img { width: 100%; border-radius: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); filter: sepia(0.2); }
+        
+        .share-btn { font-family: 'EB Garamond', serif; font-style: italic; font-size: 0.9rem; color: #8B1D20; background: none; border: 1px solid #8B1D20; padding: 8px 16px; cursor: pointer; border-radius: 20px; transition: all 0.3s; }
+        .share-btn:hover { background: #8B1D20; color: #F4F1EA; }
 
         .footer { margin-top: 60px; text-align: center; font-size: 0.9rem; color: #A9A497; border-top: 1px solid #D9D4C7; padding: 40px 0; font-style: italic; line-height: 1.6; max-width: 800px; width: 100%; }
         .footer a { color: #A9A497; text-decoration: underline; }
@@ -70,6 +71,14 @@
     <script>
         function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
 
+        async function copyLink(id, btn) {
+            const url = `https://www.theredbotfiles.com/share.html?id=${id}`;
+            await navigator.clipboard.writeText(url);
+            const originalText = btn.innerText;
+            btn.innerText = "Link Gathered";
+            setTimeout(() => btn.innerText = originalText, 2000);
+        }
+
         async function openTheme(tag) {
             const overlay = document.getElementById('modal-overlay');
             const results = document.getElementById('modal-results');
@@ -88,7 +97,7 @@
                         <div class="result-item">
                             <div class="result-q">Q: ${item.question}</div>
                             <div class="result-a">${item.answer}</div>
-                            ${item.noun ? `<img src="https://pollinations.ai/p/${item.noun}?width=600&height=400&seed=${item.seed}&model=flux&nologo=true" class="result-img" alt="Artifact">` : ''}
+                            <button class="share-btn" onclick="copyLink('${item._id}', this)">Gather Share Link</button>
                         </div>
                     `).join('');
                 }
