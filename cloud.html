@@ -3,93 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Archive | Word Cloud</title>
+    <title>The Archive | Themes</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/compromise"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
     <style>
-        body {
-            background-color: #f4f1ea;
-            color: #2c2c2c;
-            font-family: 'Courier New', Courier, monospace;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            margin: 0;
-        }
-        header {
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #dcdcdc;
-        }
-        .logo {
-            width: 40px; /* Fixed as per 2026-04-20 instruction */
-            height: auto;
-        }
-        nav a {
-            text-decoration: none;
-            color: #2c2c2c;
-            margin-left: 20px;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-        main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 20px;
-        }
-        h1 {
-            font-size: 1.2rem;
-            margin-bottom: 30px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-        #word-cloud-container {
-            width: 90%;
-            max-width: 900px;
-            height: 500px;
-            background: #fff;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
-            border: 1px solid #eee;
-            border-radius: 4px;
-        }
-        footer {
-            padding: 40px 20px;
-            text-align: center;
-            font-size: 0.75rem;
-            line-height: 1.6;
-            color: #777;
-            border-top: 1px solid #dcdcdc;
-        }
-        .loading-ghost {
-            font-style: italic;
-            color: #999;
-        }
+        body { background-color: #f4f1ea; color: #2c2c2c; font-family: 'Courier New', monospace; display: flex; flex-direction: column; min-height: 100vh; margin: 0; }
+        header { padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #dcdcdc; }
+        .logo { width: 40px; height: auto; } /* 40px as per 2026-04-20 instruction */
+        nav a { text-decoration: none; color: #2c2c2c; margin-left: 20px; font-weight: bold; font-size: 0.9rem; }
+        main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; }
+        h1 { font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 30px; }
+        #cloud-container { width: 100%; max-width: 800px; height: 500px; position: relative; }
+        canvas { width: 100% !important; height: 100% !important; }
+        footer { padding: 40px 20px; text-align: center; font-size: 0.75rem; color: #666; border-top: 1px solid #dcdcdc; line-height: 1.6; }
+        #status { font-style: italic; color: #999; margin-top: 20px; }
     </style>
 </head>
 <body>
 
     <header>
-        <a href="index.html">
-            <img src="logo.png" alt="Logo" class="logo">
-        </a>
+        <a href="index.html"><img src="logo.png" alt="Logo" class="logo"></a>
         <nav>
-            <a href="index.html">THE ARCHIVE</a>
+            <a href="index.html">INQUIRY</a>
             <a href="cloud.html">THEMES</a>
         </nav>
     </header>
 
     <main>
         <h1>Thematic Resonance</h1>
-        <div id="word-cloud-container">
+        <div id="cloud-container">
             <canvas id="cloud-canvas"></canvas>
         </div>
-        <div id="status" class="loading-ghost">Gathering the ghosts...</div>
+        <div id="status">Sifting through the logs...</div>
     </main>
 
     <footer>
