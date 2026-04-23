@@ -1,62 +1,48 @@
-async function drawCloud() {
-    const status = document.getElementById('status');
-    const canvas = document.getElementById('cloud-canvas');
-    const container = document.getElementById('cloud-container');
+export default async function handler(req, res) {
+  try {
+    const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/json/v1/default_keyspace/logs`;
+    
+    const astraRes = await fetch(astraUrl, {
+      method: 'POST',
+      headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ "find": { "options": { "limit": 500 } } })
+    });
 
-    // Set internal canvas resolution
-    canvas.width = container.offsetWidth;
-    canvas.height = container.offsetHeight;
+    const astraData = await astraRes.json();
+    const documents = astraData?.data?.documents || [];
+    
+    // Combine questions and answers for a full thematic picture
+    const fullText = documents.map(doc => `${doc.question} ${doc.answer}`).join(" ").toLowerCase();
+    const words = fullText.match(/\b(\w+)\b/g);
 
-    try {
-        const response = await fetch('/api/cloud-data');
-        const data = await response.json();
-        
-        if (!data.text) throw new Error("No data");
+    // THEMATIC FILTER: A massive list of "non-theme" filler words to ignore
+    const fillerWords = new Set([
+        "just", "really", "thing", "things", "something", "anything", "nothing", 
+        "maybe", "actually", "even", "also", "back", "still", "through", "because", 
+        "around", "much", "very", "well", "look", "said", "take", "come", "where", 
+        "there", "their", "which", "when", "been", "were", "what", "could", "should", 
+        "would", "does", "then", "them", "these", "here", "being", "your", "they",
+        "have", "with", "from", "that", "this", "about", "some", "into", "other"
+    ]);
 
-        // 1. NLP NOUN EXTRACTION
-        const doc = nlp(data.text);
-        // Extracts only nouns and converts to array
-        const nouns = doc.nouns().out('array');
-
-        // 2. THEMATIC FILTER (Filler Killers)
-        const exclusions = new Set([
-            'thing', 'things', 'something', 'anything', 'really', 'actually', 
-            'maybe', 'just', 'nothing', 'time', 'world', 'life', 'people', 
-            'way', 'part', 'sense', 'kind', 'lot', 'question', 'answer'
-        ]);
-
-        const counts = {};
-        nouns.forEach(n => {
-            const word = n.toLowerCase().replace(/[^a-z]/g, '');
-            if (word.length > 3 && !exclusions.has(word)) {
-                counts[word] = (counts[word] || 0) + 1;
-            }
-        });
-
-        // 3. CONVERT TO CLOUD FORMAT
-        const cloudData = Object.entries(counts)
-            .map(([text, count]) => [text, 18 + (count * 4)]) // Scaled size
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 80);
-
-        // 4. RENDER
-        WordCloud(canvas, {
-            list: cloudData,
-            gridSize: 8,
-            weightFactor: 1,
-            fontFamily: 'Courier New, monospace',
-            color: '#2c2c2c',
-            rotateRatio: 0,
-            backgroundColor: 'transparent',
-            drawOutOfBound: false
-        });
-
-        status.style.display = 'none';
-
-    } catch (err) {
-        console.error(err);
-        status.innerText = "The themes are currently obscured.";
+    const counts = {};
+    if (words) {
+      words.forEach(word => {
+        // Only keep words longer than 3 letters that aren't in our filler list
+        if (word.length > 3 && !fillerWords.has(word)) {
+          counts[word] = (counts[word] || 0) + 1;
+        }
+      });
     }
-}
 
-window.addEventListener('load', drawCloud);
+    // Convert to the [word, weight] format required by WordCloud2
+    const cloudData = Object.keys(counts)
+      .map(word => [word, 15 + (counts[word] * 8)]) 
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 80); // Top 80 themes
+
+    res.status(200).json(cloudData);
+  } catch (err) {
+    res.status(500).json({ error: "The cloud remains out of reach." });
+  }
+}
