@@ -18,7 +18,8 @@ export default async function handler(req, res) {
       const astraRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ "find": { "options": { "limit": 10 } } }), // Back to 10 entries now that limits are gone
+        // REDUCED: Fetching 5 instead of 10 to speed up "Time to First Token"
+        body: JSON.stringify({ "find": { "options": { "limit": 5 } } }),
         signal: controller.signal
       });
       const astraData = await astraRes.json();
@@ -34,11 +35,12 @@ export default async function handler(req, res) {
       headers: {
         "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://www.theredbotfiles.com", // Optional, but good for OpenRouter
+        "HTTP-Referer": "https://www.theredbotfiles.com",
         "X-Title": "The Red Bot Files"
       },
       body: JSON.stringify({
-        model: "meta-llama/llama-3.3-70b-instruct", // The high-quality model
+        // FORCED: Appending :groq tells OpenRouter to use Groq hardware for speed
+        model: "meta-llama/llama-3.3-70b-instruct:groq", 
         messages: [
           { 
             role: "system", 
@@ -51,8 +53,8 @@ export default async function handler(req, res) {
             - THE FORBIDDEN: NEVER mention the name "Nick" or "Nick Cave". 
             - SUBSTANCE: Do not hide behind vague metaphors. Arrive at a concrete answer, a personal truth, or a specific piece of advice. If the user asks a question, answer it directly.
             - GROUNDEDNESS: Write in poetic language using the gritty, analog reality found in your archives.
-            - THE PIVOT: Paraphrase the user's question in the first paragraph. In the second paragraph, provide a "hard-won" insight or direct reflection. The third paragraph is for a quiet, personal closing.
-            - FIGURES: Naturally mention 1-2 historical/artistic figures ONLY if they truly fit the context of the answer.
+            - THE PIVOT: Paraphrase the user's question in the first paragraph. In the second paragraph, provide a "hard-won" insight.
+            - FIGURES: Naturally mention 1-2 historical/artistic figures ONLY if they truly fit.
             - STRUCTURE: Three paragraphs only. No bold text, no bullet points.
 
             IMAGE GENERATION RULE:
