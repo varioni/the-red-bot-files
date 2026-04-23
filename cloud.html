@@ -5,18 +5,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Archive | Themes</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/compromise"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
     <style>
-        body { background-color: #f4f1ea; color: #2c2c2c; font-family: 'Courier New', monospace; display: flex; flex-direction: column; min-height: 100vh; margin: 0; }
-        header { padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #dcdcdc; }
-        .logo { width: 40px; height: auto; } /* 40px as per 2026-04-20 instruction */
-        nav a { text-decoration: none; color: #2c2c2c; margin-left: 20px; font-weight: bold; font-size: 0.9rem; }
-        main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; }
+        body { 
+            background-color: #f4f1ea; 
+            color: #2c2c2c; 
+            font-family: 'Courier New', monospace; 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 100vh; 
+            margin: 0; 
+        }
+        header { 
+            padding: 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid #dcdcdc; 
+        }
+        .logo { width: 40px; height: auto; } /* 40px logo constraint */
+        nav a { 
+            text-decoration: none; 
+            color: #2c2c2c; 
+            margin-left: 20px; 
+            font-weight: bold; 
+            font-size: 0.9rem; 
+        }
+        main { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 40px 20px; 
+        }
         h1 { font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 30px; }
         #cloud-container { width: 100%; max-width: 800px; height: 500px; position: relative; }
         canvas { width: 100% !important; height: 100% !important; }
-        footer { padding: 40px 20px; text-align: center; font-size: 0.75rem; color: #666; border-top: 1px solid #dcdcdc; line-height: 1.6; }
+        footer { 
+            padding: 40px 20px; 
+            text-align: center; 
+            font-size: 0.75rem; 
+            color: #666; 
+            border-top: 1px solid #dcdcdc; 
+            line-height: 1.6; 
+        }
         #status { font-style: italic; color: #999; margin-top: 20px; }
     </style>
 </head>
@@ -42,6 +75,42 @@
         <p>This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for The Red Hand Files.</p>
     </footer>
 
-    <script src="wordcloud.js"></script>
+    <script>
+        async function initCloud() {
+            const status = document.getElementById('status');
+            const canvas = document.getElementById('cloud-canvas');
+            const container = document.getElementById('cloud-container');
+
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
+
+            try {
+                // Ensure this path matches your API filename exactly
+                const response = await fetch('/api/wordcloud');
+                const list = await response.json();
+
+                if (!Array.isArray(list)) throw new Error("Data format error");
+
+                WordCloud(canvas, {
+                    list: list,
+                    gridSize: 10,
+                    weightFactor: 1,
+                    fontFamily: 'Courier New, monospace',
+                    color: '#2c2c2c',
+                    rotateRatio: 0,
+                    backgroundColor: 'transparent',
+                    drawOutOfBound: false
+                });
+
+                status.style.display = 'none';
+            } catch (err) {
+                console.error(err);
+                status.innerText = "The cloud is currently obscured.";
+            }
+        }
+
+        window.addEventListener('load', initCloud);
+        window.addEventListener('resize', initCloud);
+    </script>
 </body>
 </html>
