@@ -23,13 +23,14 @@
         .word { transition: all 0.3s ease; cursor: pointer; display: inline-block; white-space: nowrap; margin: -2px 8px; padding: 0; position: relative; }
         .word:hover { color: #000 !important; transform: scale(1.1); z-index: 100; opacity: 1 !important; text-decoration: underline; }
 
-        /* The Modal Drawer */
-        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; z-index: 1000; justify-content: center; align-items: flex-end; }
-        #modal-content { background: #F4F1EA; width: 100%; max-width: 800px; max-height: 80vh; border-radius: 20px 20px 0 0; padding: 40px; overflow-y: auto; box-shadow: 0 -10px 30px rgba(0,0,0,0.1); border: 1px solid #D9D4C7; }
-        .modal-close { position: sticky; top: 0; float: right; cursor: pointer; font-family: 'IM Fell DW Pica'; font-size: 1.5rem; }
-        .result-item { margin-bottom: 40px; padding-bottom: 20px; border-bottom: 1px solid #D9D4C7; }
-        .result-q { font-weight: bold; font-style: italic; margin-bottom: 10px; font-size: 1.1rem; }
-        .result-a { line-height: 1.6; color: #333; }
+        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; z-index: 1000; justify-content: center; align-items: flex-end; }
+        #modal-content { background: #F4F1EA; width: 100%; max-width: 800px; height: 85vh; border-radius: 20px 20px 0 0; padding: 40px; overflow-y: auto; box-shadow: 0 -10px 40px rgba(0,0,0,0.2); border: 1px solid #D9D4C7; }
+        .modal-close { position: sticky; top: 0; float: right; cursor: pointer; font-family: 'IM Fell DW Pica'; font-size: 1.5rem; color: #8B1D20; }
+        .result-item { margin-bottom: 60px; padding-bottom: 40px; border-bottom: 1px solid #D9D4C7; }
+        .result-q { font-weight: bold; font-style: italic; margin-bottom: 20px; font-size: 1.2rem; color: #8B1D20; }
+        /* Preserve the three-paragraph layout */
+        .result-a { line-height: 1.7; color: #2c2c2c; white-space: pre-wrap; margin-bottom: 25px; font-size: 1.05rem; }
+        .result-img { width: 100%; border-radius: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); filter: sepia(0.2); }
 
         .footer { margin-top: 60px; text-align: center; font-size: 0.9rem; color: #A9A497; border-top: 1px solid #D9D4C7; padding: 40px 0; font-style: italic; line-height: 1.6; max-width: 800px; width: 100%; }
         .footer a { color: #A9A497; text-decoration: underline; }
@@ -39,7 +40,7 @@
     <div id="modal-overlay" onclick="closeModal()">
         <div id="modal-content" onclick="event.stopPropagation()">
             <span class="modal-close" onclick="closeModal()">✕</span>
-            <h3 id="modal-title" style="font-family: 'IM Fell DW Pica'; text-transform: uppercase;">Thematic Echoes</h3>
+            <h3 id="modal-title" style="font-family: 'IM Fell DW Pica'; text-transform: uppercase; margin-bottom: 30px;">Thematic Echoes</h3>
             <div id="modal-results">Searching...</div>
         </div>
     </div>
@@ -81,12 +82,13 @@
                 const data = await res.json();
                 
                 if (data.length === 0) {
-                    results.innerHTML = "This theme remains a silent ghost.";
+                    results.innerHTML = "This theme remains a silent ghost in the questions.";
                 } else {
                     results.innerHTML = data.map(item => `
                         <div class="result-item">
                             <div class="result-q">Q: ${item.question}</div>
                             <div class="result-a">${item.answer}</div>
+                            ${item.noun ? `<img src="https://pollinations.ai/p/${item.noun}?width=600&height=400&seed=${item.seed}&model=flux&nologo=true" class="result-img" alt="Artifact">` : ''}
                         </div>
                     `).join('');
                 }
