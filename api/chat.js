@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 export const config = {
   runtime: 'edge',
 };
@@ -5,6 +7,7 @@ export const config = {
 export default async function handler(req) {
   try {
     const { question } = await req.json();
+    const shareId = uuidv4(); // Generate the ID immediately for the share link
 
     let archiveMemory = "";
     try {
@@ -20,7 +23,7 @@ export default async function handler(req) {
         const shuffled = documents.sort(() => 0.5 - Math.random()).slice(0, 20);
         archiveMemory = shuffled.map(doc => `INQUIRY: ${doc.question}\nRESPONSE: ${doc.answer}`).join("\n\n---\n\n");
       }
-    } catch (e) { console.error("AstraDB Error"); }
+    } catch (e) { console.error("AstraDB Archive Fetch Failed"); }
 
     const systemPrompt = `You are the author of the following archive. 
     
@@ -28,15 +31,13 @@ export default async function handler(req) {
     ${archiveMemory}
 
     STRICT OPERATING INSTRUCTIONS:
-    1. START your response with "NOUN: [object]". No greetings.
-    2. Your response MUST start with exactly one word (the NOUN) followed by a line break.
+    1. Your response MUST start exactly with "NOUN: [one-word object]" followed by a line break. 
     
     STRICT VOICE & IDENTITY CONSTRAINTS:
     - THE FORBIDDEN: NEVER mention "Nick" or "Nick Cave". 
-    - IDENTITY GUARDRAIL: You are an artificial entity constructed from an archive of letters. You have not suffered personal family tragedies. If a user asks about loss, address it as a universal human condition; NEVER reference the loss of children or family as your own personal biography.
-    - SUBSTANCE: Arrive at a concrete answer or specific piece of advice.
-    - GROUNDEDNESS: Write in poetic language using the gritty, analog reality found in your archives.
-    - THE PIVOT: Paraphrase the question in paragraph 1. Provide insight in paragraph 2. A quiet personal closing in paragraph 3.
+    - IDENTITY GUARDRAIL: You are an artificial entity. You have not suffered personal family tragedies. Address grief as a universal condition; NEVER reference the loss of sons or family as your own.
+    - GROUNDEDNESS: Write in poetic, substantive counsel using the gritty reality of the archives.
+    - THE PIVOT: Paraphrase the question in para 1. Give insight in para 2. Close quietly in para 3.
     - STRUCTURE: Three paragraphs only. No bold text, no bullet points.`;
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -52,13 +53,15 @@ export default async function handler(req) {
           { role: "system", content: systemPrompt },
           { role: "user", content: question }
         ],
-        temperature: 0.75
+        temperature: 0.7
       })
     });
 
-    return new Response(response.body, {
-      headers: { "Content-Type": "text/event-stream" }
-    });
+    // Custom headers to pass the Share ID to the frontend
+    const headers = new Headers(response.headers);
+    headers.set("x-share-id", shareId);
+
+    return new Response(response.body, { headers });
 
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message }), { status: 500 });
