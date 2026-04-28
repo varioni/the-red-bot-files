@@ -3,33 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Red Bot Files</title>
+    <title>The Red Bot Files | An Artificial Inquiry</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%238B1D20%22><path d=%22M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z%22/></svg>">
     <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #F4F1EA; color: #1a1a1a; font-family: 'EB Garamond', serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 40px 20px; min-height: 100vh; }
+        :root { --ink: #1a1a1a; --blood: #8B1D20; --paper: #F4F1EA; --shadow: #D9D4C7; --nav-grey: #7F7A6D; }
+        
+        body { background-color: var(--paper); color: var(--ink); font-family: 'EB Garamond', serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 40px 20px; min-height: 100vh; }
+        
+        /* Header */
         .header { text-align: center; margin-bottom: 5px; }
-        .logo-svg { width: 40px; fill: #8B1D20; margin-bottom: 8px; }
-        h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.2rem; text-transform: uppercase; margin: 0; letter-spacing: 2px; color: #8B1D20; }
+        .logo-svg { width: 40px; fill: var(--blood); margin-bottom: 8px; }
+        h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.2rem; text-transform: uppercase; margin: 0; letter-spacing: 2px; color: var(--blood); }
+        
+        /* Navigation */
         .nav-container { margin-top: 20px; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: center; gap: 12px; font-style: italic; }
-        .nav-container a, .nav-container span { color: #7F7A6D; text-decoration: none; }
-        .nav-container .active { font-weight: 800; }
-        .divider { width: 100%; max-width: 1000px; border-bottom: 1px solid #D9D4C7; margin: 25px 0 40px 0; }
+        .nav-container a, .nav-container span { color: var(--nav-grey); text-decoration: none; }
+        .divider { width: 100%; max-width: 1000px; border-bottom: 1px solid var(--shadow); margin: 25px 0 40px 0; }
         
+        /* Input Area */
         #input-container { width: 100%; max-width: 700px; text-align: center; }
-        textarea { width: 100%; height: 120px; background: transparent; border: none; padding: 15px; font-family: 'EB Garamond', serif; font-size: 1.3rem; color: #1a1a1a; resize: none; box-sizing: border-box; outline: none; }
-        .btn-main { margin-top: 25px; background: #8B1D20; color: #F4F1EA; border: none; padding: 12px 35px; font-family: 'IM Fell DW Pica', serif; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; border-radius: 25px; }
+        textarea { width: 100%; height: 120px; background: transparent; border: none; padding: 15px; font-family: 'EB Garamond', serif; font-size: 1.3rem; color: var(--ink); resize: none; box-sizing: border-box; outline: none; }
         
-        #output-area { width: 100%; max-width: 750px; display: none; }
-        #response-question { font-weight: 800; color: #8B1D20; font-size: 1.5rem; margin-bottom: 40px; text-align: center; line-height: 1.4; }
+        /* The "Real" Button Style from Screenshot */
+        .btn-red-hand { margin-top: 25px; background: transparent; color: var(--blood); border: 1px solid var(--blood); padding: 15px 40px; font-family: 'IM Fell DW Pica', serif; text-transform: uppercase; letter-spacing: 3px; font-size: 0.9rem; cursor: pointer; transition: all 0.3s; }
+        .btn-red-hand:hover { background: #E8E4DB; }
+
+        /* Output Area */
+        #output-area { width: 100%; max-width: 1000px; display: none; }
         
-        /* The Polaroid Frame */
-        .polaroid { background: white; padding: 15px 15px 60px 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transform: rotate(-1.5deg); margin: 0 auto 50px auto; max-width: 450px; border: 1px solid #E5E1D8; display: none; }
-        .polaroid img { width: 100%; height: auto; display: block; filter: sepia(0.2) contrast(1.05); background: #eee; min-height: 300px; }
+        /* Replicated Heading Style */
+        .response-header { text-align: center; margin-bottom: 50px; }
+        #response-question { font-weight: 800; color: var(--blood); font-size: 1.6rem; margin-bottom: 10px; line-height: 1.3; font-family: 'EB Garamond', serif; max-width: 800px; margin-left: auto; margin-right: auto; }
+        .issue-subtitle { text-transform: uppercase; letter-spacing: 3px; font-size: 0.75rem; color: var(--blood); font-weight: 600; opacity: 0.8; }
         
-        #response-counsel { font-size: 1.3rem; line-height: 1.8; white-space: pre-wrap; color: #1a1a1a; text-align: justify; }
-        .action-footer { text-align: center; margin-top: 60px; display: none; }
-        footer { margin-top: 100px; text-align: center; font-size: 0.9rem; color: #A9A497; border-top: 1px solid #D9D4C7; padding: 40px 0; font-style: italic; line-height: 1.6; max-width: 800px; width: 100%; }
+        /* Side-by-Side Content */
+        .response-body { display: flex; flex-direction: row; align-items: flex-start; gap: 60px; margin-top: 40px; }
+        
+        /* Replicated Image Style (Stripped Polaroid) */
+        .image-container { flex: 0 0 45%; max-width: 450px; display: none; }
+        .image-container img { width: 100%; height: auto; display: block; border-radius: 2px; }
+        
+        #response-counsel { flex: 1; font-size: 1.25rem; line-height: 1.8; white-space: pre-wrap; color: var(--ink); text-align: left; }
+
+        .action-footer { text-align: center; margin: 80px 0; width: 100%; display: none; }
+
+        footer { margin-top: auto; text-align: center; font-size: 0.85rem; color: #A9A497; border-top: 1px solid var(--shadow); padding: 50px 0; font-style: italic; line-height: 1.8; max-width: 900px; width: 100%; }
+        footer a { color: #A9A497; text-decoration: underline; }
+
+        @media (max-width: 850px) {
+            .response-body { flex-direction: column; align-items: center; }
+            .image-container { flex: 0 0 auto; margin-bottom: 30px; width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -38,28 +63,36 @@
         <h1>The Red Bot Files</h1>
     </div>
     <nav class="nav-container">
-        <span class="active">Ask me Anything</span>
-        <span style="opacity:0.5; font-style:normal;">/</span>
+        <span>Inquiry</span>
+        <span style="opacity:0.3; font-style:normal;">/</span>
         <a href="cloud.html">Look Yonder</a>
     </nav>
     <div class="divider"></div>
 
     <div id="input-container">
         <textarea id="user-input" placeholder="write your question here"></textarea><br>
-        <button class="btn-main" onclick="askQuestion()">Submit</button>
+        <button class="btn-red-hand" onclick="askQuestion()">Submit</button>
     </div>
 
     <div id="output-area">
-        <div id="response-question"></div>
-        <div id="response-image" class="polaroid"></div>
-        <div id="response-counsel"></div>
+        <div class="response-header">
+            <div id="response-question"></div>
+            <div class="issue-subtitle" id="issue-tag">ANONYMOUS, INTERNET</div>
+            <div style="width: 100%; border-bottom: 1px solid var(--shadow); margin-top: 30px;"></div>
+        </div>
+        <div class="response-body">
+            <div id="response-image-container" class="image-container"></div>
+            <div id="response-counsel"></div>
+        </div>
         <div class="action-footer" id="action-footer">
-            <button class="btn-main" onclick="location.reload()">New Inquiry</button>
+            <button class="btn-red-hand" onclick="location.reload()">Ask a Question</button>
         </div>
     </div>
 
     <footer>
         This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for <a href="https://www.theredhandfiles.com/" target="_blank">The Red Hand Files</a>.
+        <br>
+        Made with ❤︎ by <a href="https://github.com/varioni" target="_blank">varioni</a>
     </footer>
 
     <script>
@@ -89,9 +122,8 @@
             document.getElementById('output-area').style.display = 'block';
             document.getElementById('response-question').innerText = questionText;
             document.getElementById('response-counsel').innerText = "Reading...";
-            document.getElementById('response-image').style.display = 'none';
             
-            const seed = Math.floor(Math.random() * 1000);
+            const seed = Math.floor(Math.random() * 10000);
             
             try {
                 const response = await fetch('/api/chat', {
@@ -127,20 +159,22 @@
                                     document.getElementById('response-counsel').innerText = "";
                                 }
 
-                                // Precise Noun Extraction: must follow the format "NOUN: word"
-                                if (!nounFound && fullText.toUpperCase().includes('NOUN:')) {
+                                if (!nounFound && fullText.includes('\n')) {
                                     const match = fullText.match(/NOUN:\s*([a-zA-Z]+)/i);
                                     if (match && match[1]) {
-                                        const noun = match[1].toLowerCase().trim();
-                                        // Simple, robust Pollinations URL
+                                        const noun = encodeURIComponent(match[1].toLowerCase().trim());
                                         const imgUrl = `https://pollinations.ai/p/${noun}?width=800&height=800&nologo=true&seed=${seed}`;
-                                        document.getElementById('response-image').innerHTML = `<img src="${imgUrl}">`;
-                                        document.getElementById('response-image').style.display = 'block';
+                                        const img = new Image();
+                                        img.onload = () => {
+                                            document.getElementById('response-image-container').innerHTML = '';
+                                            document.getElementById('response-image-container').appendChild(img);
+                                            document.getElementById('response-image-container').style.display = 'block';
+                                        };
+                                        img.src = imgUrl;
                                         nounFound = true;
                                     }
                                 }
 
-                                // Display logic: Hide the NOUN trigger line from the counsel
                                 const linesOfText = fullText.split('\n');
                                 if (linesOfText.length > 1) {
                                     document.getElementById('response-counsel').innerText = linesOfText.slice(1).join('\n').trim();
@@ -155,7 +189,7 @@
                 document.getElementById('action-footer').style.display = 'block';
 
             } catch (err) {
-                document.getElementById('response-counsel').innerHTML = `<span style="color:red;">The archive is silent: ${err.message}</span>`;
+                document.getElementById('response-counsel').innerText = "Error: " + err.message;
             }
         }
     </script>
