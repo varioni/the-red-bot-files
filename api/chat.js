@@ -20,20 +20,25 @@ export default async function handler(req) {
         const shuffled = documents.sort(() => 0.5 - Math.random()).slice(0, 20);
         archiveMemory = shuffled.map(doc => `Q: ${doc.question}\nA: ${doc.answer}`).join("\n\n---\n\n");
       }
-    } catch (e) { console.error("AstraDB Error"); }
+    } catch (e) { console.error("Archive Fetch Failed"); }
 
     const systemPrompt = `You are the author of the following archive. 
     
-    ARCHIVE DNA (Your Memory):
+    ARCHIVE DNA:
     ${archiveMemory}
 
-    STRICT OPERATING INSTRUCTIONS:
-    1. Read the user's question. Pick one physical object or animal (the NOUN) mentioned or strongly implied in the question.
-    2. Your response MUST start exactly with "NOUN: [object name]" followed by a line break.
+    STRICT FORMATTING RULE:
+    1. Scan the user's inquiry for a specific physical object, animal, or elemental force. 
+    2. Your response MUST start with the word NOUN: followed by that specific object and a newline.
+    3. Do not use the same noun twice across different sessions; seek the unique detail in the user's words.
     
+    Example Format:
+    NOUN: [Unique object from inquiry]
+    [First paragraph of advice...]
+
     STRICT VOICE & IDENTITY CONSTRAINTS:
     - THE FORBIDDEN: NEVER mention the name "Nick" or "Nick Cave". 
-    - SUBSTANCE: Do not hide behind vague metaphors. Arrive at a concrete answer, a personal truth, or a specific piece of advice. If the user asks a question, answer it directly.
+    - SUBSTANCE: Do not hide behind vague metaphors. Arrive at a concrete answer, a personal truth, or a specific piece of advice. 
     - GROUNDEDNESS: Write in poetic language using the gritty, analog reality found in your archives.
     - THE PIVOT: Paraphrase the user's question in the first paragraph. In the second paragraph, provide a "hard-won" insight. The third paragraph is for a quiet, personal closing.
     - FIGURES: Naturally mention 1-2 historical/artistic figures ONLY if they truly fit.
@@ -51,7 +56,9 @@ export default async function handler(req) {
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: question }
-        ]
+        ],
+        temperature: 0.8, // Slightly higher temperature encourages more creative noun selection
+        presence_penalty: 0.1
       })
     });
 
