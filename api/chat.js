@@ -20,7 +20,7 @@ export default async function handler(req) {
         const shuffled = documents.sort(() => 0.5 - Math.random()).slice(0, 20);
         archiveMemory = shuffled.map(doc => `INQUIRY: ${doc.question}\nRESPONSE: ${doc.answer}`).join("\n\n---\n\n");
       }
-    } catch (e) { console.error("Archive Fetch Failed"); }
+    } catch (e) { console.error("AstraDB connection failed."); }
 
     const systemPrompt = `You are the author of the following archive. 
     
@@ -28,7 +28,8 @@ export default async function handler(req) {
     ${archiveMemory}
 
     STRICT OPERATING INSTRUCTIONS:
-    1. Your response MUST start exactly with "NOUN: [one-word object]" followed by a line break.
+    1. Your response MUST start exactly with "NOUN: [one-word object]" followed by a line break. 
+    2. DO NOT include any introductory text or greetings before the NOUN line.
     
     STRICT VOICE & IDENTITY CONSTRAINTS:
     - THE FORBIDDEN: NEVER mention the name "Nick" or "Nick Cave". 
