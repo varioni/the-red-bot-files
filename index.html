@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Red Bot Files | An Artificial Inquiry</title>
     <!-- RESTORED FAVICON -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%238B1D20%22><path d=%22M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z%22/></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238B1D20'%3E%3Cpath d='M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z'/%3E%3C/svg%3E">
     <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <style>
         :root { --paper: #F4F1EA; --ink: #1a1a1a; --blood: #8B1D20; --nav-grey: #7F7A6D; --shadow: #D9D4C7; }
@@ -20,7 +20,7 @@
         .btn-thin { background: transparent; color: var(--blood); border: 1px solid var(--blood); padding: 12px 35px; font-family: 'IM Fell DW Pica', serif; text-transform: uppercase; letter-spacing: 3px; font-size: 0.85rem; cursor: pointer; transition: all 0.3s; margin: 10px; }
         .btn-thin:hover { background: #E8E4DB; }
         #output-area { width: 100%; max-width: 1100px; display: none; }
-        #response-question { font-weight: 800; color: var(--blood); font-size: 1.6rem; margin-bottom: 10px; text-align: center; line-height: 1.3; font-family: 'EB Garamond', serif; }
+        #response-question { font-weight: 800; color: var(--blood); font-size: 1.6rem; margin-bottom: 10px; text-align: center; line-height: 1.3; }
         .issue-subtitle { text-transform: uppercase; letter-spacing: 3px; font-size: 0.75rem; color: var(--blood); text-align: center; margin-bottom: 40px; font-weight: 600; opacity: 0.8; }
         .response-body { display: flex; flex-direction: row; align-items: flex-start; gap: 60px; margin-top: 40px; }
         .polaroid-container { flex: 0 0 380px; display: none; }
@@ -28,7 +28,7 @@
         .polaroid-frame img { width: 100%; height: auto; filter: sepia(0.2) contrast(1.1); display: block; }
         #response-counsel { flex: 1; font-size: 1.25rem; line-height: 1.8; white-space: pre-wrap; color: var(--ink); text-align: left; }
         .action-footer { text-align: center; margin: 80px 0; width: 100%; display: none; }
-        footer { margin-top: auto; text-align: center; font-size: 0.85rem; color: #A9A497; border-top: 1px solid var(--shadow); padding: 50px 0; font-style: italic; width: 100%; max-width: 900px; line-height: 1.6; }
+        footer { margin-top: auto; text-align: center; font-size: 0.85rem; color: #A9A497; border-top: 1px solid var(--shadow); padding: 50px 0; font-style: italic; width: 100%; max-width: 900px; }
         .attribution { color: var(--blood); display: block; margin-top: 8px; }
         @media (max-width: 850px) { .response-body { flex-direction: column; align-items: center; } .polaroid-container { width: 100%; max-width: 350px; margin-bottom: 40px; } }
     </style>
@@ -59,7 +59,6 @@
     <footer>This fan-made experiment in AI is part tribute and part parody.<span class="attribution">Made with ❤︎ by <a href="https://github.com/varioni" target="_blank" style="color:var(--blood); text-decoration:none;">varioni</a></span></footer>
     <script>
         let shareId = "";
-        let finalNoun = "";
 
         async function copyShare() {
             if (!shareId) return;
@@ -77,10 +76,11 @@
             document.getElementById('output-area').style.display = 'block';
             document.getElementById('response-question').innerText = qText;
             document.getElementById('response-counsel').innerText = "Reading...";
-            const seed = Math.floor(Math.random() * 10000);
             
             try {
                 const response = await fetch('/api/chat', { method: 'POST', body: JSON.stringify({ question: qText }) });
+                shareId = response.headers.get("x-share-id");
+                const seed = response.headers.get("x-seed");
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let fullText = "", nounFound = false, buffer = "";
@@ -96,24 +96,18 @@
                             const dataStr = line.slice(6).trim();
                             if (dataStr === '[DONE]') break;
                             try {
-                                const parsed = JSON.parse(dataStr);
-                                // Handle ID chunk
-                                if (parsed.id) { shareId = parsed.id; continue; }
-                                
-                                // Handle AI Content chunks
-                                const content = (parsed.choices && parsed.choices[0].delta.content) || "";
+                                const content = JSON.parse(dataStr).choices[0].delta.content || "";
                                 if (content) {
                                     if (document.getElementById('response-counsel').innerText === "Reading...") {
                                         document.getElementById('response-counsel').innerText = "";
                                     }
                                     fullText += content;
                                 }
-
                                 if (!nounFound && fullText.includes('\n')) {
-                                    const match = fullText.match(/N(?:OUN)?:\s*([a-zA-Z\-]+)/i);
+                                    const match = fullText.match(/NOUN:\s*([a-zA-Z\-]+)/i);
                                     if (match && match[1]) {
-                                        finalNoun = match[1].toLowerCase().trim();
-                                        const imgUrl = `https://loremflickr.com/800/800/${finalNoun},gothic/all?lock=${seed}`;
+                                        const noun = match[1].toLowerCase().trim();
+                                        const imgUrl = `https://loremflickr.com/400/400/${noun},gothic/all?lock=${seed}`;
                                         const img = new Image();
                                         img.onload = () => {
                                             document.getElementById('polaroid-frame').innerHTML = `<img src="${imgUrl}">`;
@@ -123,19 +117,11 @@
                                         nounFound = true;
                                     }
                                 }
-                                const clean = fullText.replace(/^.*N(?:OUN)?:\s*.*?\n/im, "").trim();
+                                const clean = fullText.replace(/^.*NOUN:\s*.*?\n/im, "").trim();
                                 if (clean) document.getElementById('response-counsel').innerText = clean;
                             } catch (e) { }
                         }
                     }
-                }
-                // FINAL DB HANDSHAKE
-                if (shareId) {
-                    await fetch('/api/chat', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ isUpdate: true, id: shareId, answer: document.getElementById('response-counsel').innerText, noun: finalNoun, seed: seed })
-                    });
                 }
                 document.getElementById('action-footer').style.display = 'block';
             } catch (err) { document.getElementById('response-counsel').innerText = "Error: " + err.message; }
