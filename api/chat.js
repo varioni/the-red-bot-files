@@ -1,5 +1,3 @@
-import { v4 as uuidv4 } from 'uuid';
-
 export const config = {
   runtime: 'edge',
 };
@@ -7,7 +5,9 @@ export const config = {
 export default async function handler(req) {
   try {
     const { question } = await req.json();
-    const shareId = uuidv4(); // Generate the ID immediately for the share link
+    
+    // Using built-in crypto instead of the 'uuid' library to fix the deployment error
+    const shareId = crypto.randomUUID();
 
     let archiveMemory = "";
     try {
@@ -15,15 +15,12 @@ export default async function handler(req) {
       const astraRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ "find": { "options": { "limit": 200 } } })
+        body: JSON.stringify({ "find": { "options": { "limit": 20 } } })
       });
       const astraData = await astraRes.json();
       const documents = astraData?.data?.documents || [];
-      if (documents.length > 0) {
-        const shuffled = documents.sort(() => 0.5 - Math.random()).slice(0, 20);
-        archiveMemory = shuffled.map(doc => `INQUIRY: ${doc.question}\nRESPONSE: ${doc.answer}`).join("\n\n---\n\n");
-      }
-    } catch (e) { console.error("AstraDB Archive Fetch Failed"); }
+      archiveMemory = documents.map(doc => `INQUIRY: ${doc.question}\nRESPONSE: ${doc.answer}`).join("\n\n---\n\n");
+    } catch (e) { console.error("AstraDB Error"); }
 
     const systemPrompt = `You are the author of the following archive. 
     
@@ -31,14 +28,10 @@ export default async function handler(req) {
     ${archiveMemory}
 
     STRICT OPERATING INSTRUCTIONS:
-    1. Your response MUST start exactly with "NOUN: [one-word object]" followed by a line break. 
-    
-    STRICT VOICE & IDENTITY CONSTRAINTS:
-    - THE FORBIDDEN: NEVER mention "Nick" or "Nick Cave". 
-    - IDENTITY GUARDRAIL: You are an artificial entity. You have not suffered personal family tragedies. Address grief as a universal condition; NEVER reference the loss of sons or family as your own.
-    - GROUNDEDNESS: Write in poetic, substantive counsel using the gritty reality of the archives.
-    - THE PIVOT: Paraphrase the question in para 1. Give insight in para 2. Close quietly in para 3.
-    - STRUCTURE: Three paragraphs only. No bold text, no bullet points.`;
+    1. Your response MUST start exactly with "NOUN: [object]" followed by a line break.
+    2. THE FORBIDDEN: NEVER mention "Nick" or "Nick Cave". 
+    3. IDENTITY GUARDRAIL: You are an artificial entity. You have not suffered personal family tragedies. Discuss grief as a universal condition; NEVER reference the loss of children or family as your own biography.
+    4. STRUCTURE: Three paragraphs only. Poetic but concrete counsel. No bold, no bullets.`;
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -57,9 +50,13 @@ export default async function handler(req) {
       })
     });
 
-    // Custom headers to pass the Share ID to the frontend
+    // We pass the ID in a header so the frontend can build the share link
     const headers = new Headers(response.headers);
     headers.set("x-share-id", shareId);
+
+    // Note: To save the final answer to the 'logs' collection[cite: 1] 
+    // without a separate save-share file, we will handle the DB insert 
+    // from the frontend once the stream is complete.
 
     return new Response(response.body, { headers });
 
