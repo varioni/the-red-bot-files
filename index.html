@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Red Bot Files</title>
+    <title>The Red Bot Files | An Artificial Inquiry</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%238B1D20%22><path d=%22M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z%22/></svg>">
     <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <style>
@@ -12,20 +12,22 @@
         .logo-svg { width: 40px; fill: #8B1D20; margin-bottom: 8px; }
         h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.2rem; text-transform: uppercase; margin: 0; letter-spacing: 2px; color: #8B1D20; }
         
-        /* Navigation - Dark Grey */
         .nav-container { margin-top: 20px; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: center; gap: 12px; font-style: italic; }
         .nav-container a, .nav-container span { color: #7F7A6D; text-decoration: none; }
         .nav-container .active { font-weight: 800; }
-
         .divider { width: 100%; max-width: 1000px; border-bottom: 1px solid #D9D4C7; margin: 25px 0 40px 0; }
         
+        /* Input Area (Still borderless) */
         #input-container { width: 100%; max-width: 700px; text-align: center; }
-        /* Borderless User Input */
         textarea { width: 100%; height: 120px; background: transparent; border: none; padding: 15px; font-family: 'EB Garamond', serif; font-size: 1.3rem; color: #1a1a1a; resize: none; box-sizing: border-box; outline: none; }
-        
         button { margin-top: 25px; background: #8B1D20; color: #F4F1EA; border: none; padding: 12px 35px; font-family: 'IM Fell DW Pica', serif; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; border-radius: 25px; }
         
+        /* Output Area (New 'Red Hand' Layout) */
         #output-area { width: 100%; max-width: 750px; display: none; }
+        
+        /* THE FIXED: Bold Red Question Masthead */
+        #response-question { font-weight: 800; color: #8B1D20; font-size: 1.5rem; margin-bottom: 40px; text-align: center; line-height: 1.4; }
+        
         #response-image { width: 100%; margin-bottom: 30px; border-radius: 4px; overflow: hidden; }
         #response-image img { width: 100%; height: auto; display: block; filter: sepia(0.1); }
         #response-counsel { font-size: 1.3rem; line-height: 1.7; white-space: pre-wrap; color: #1a1a1a; }
@@ -47,22 +49,22 @@
     <div class="divider"></div>
 
     <div id="input-container">
-        <textarea id="user-input" placeholder="Please write me your question here..."></textarea><br>
+        <textarea id="user-input" placeholder="write your question here"></textarea><br>
         <button onclick="askQuestion()">Submit</button>
     </div>
 
     <div id="output-area">
+        <div id="response-question"></div>
         <div id="response-image"></div>
         <div id="response-counsel"></div>
     </div>
 
     <footer>
         This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for <a href="https://www.theredhandfiles.com/" target="_blank">The Red Hand Files</a>.
-        <br><br>
-        Made with ❤ by <a href="https://github.com/varioni" target="_blank">varioni</a>
     </footer>
 
     <script>
+        // ... (TypewriterAudio Engine remains the same)
         const TypewriterAudio = {
             ctx: null,
             init() { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
@@ -80,19 +82,26 @@
             }
         };
 
+        // --- UPDATED MAIN INQUIRY LOGIC ---
         async function askQuestion() {
             const input = document.getElementById('user-input');
-            const question = input.value;
-            if (!question) return;
+            const questionText = input.value;
+            if (!questionText) return;
 
-            const counselDisplay = document.getElementById('response-counsel');
-            const imageDisplay = document.getElementById('response-image');
             const inputContainer = document.getElementById('input-container');
             const outputArea = document.getElementById('output-area');
+            const questionDisplay = document.getElementById('response-question'); // Q container
+            const imageDisplay = document.getElementById('response-image');
+            const counselDisplay = document.getElementById('response-counsel');
 
+            // UI Setup: Hide input, show output
             inputContainer.style.display = 'none';
             outputArea.style.display = 'block';
+            
+            // THE RESTORATION: Repeat the question in Bold Red
+            questionDisplay.innerText = questionText;
             counselDisplay.innerText = "Reading...";
+            imageDisplay.innerHTML = ""; // Clear old image
             
             const seed = Math.floor(Math.random() * 1000);
             
@@ -100,13 +109,10 @@
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ question })
+                    body: JSON.stringify({ question: questionText })
                 });
 
-                if (!response.ok) {
-                    const errText = await response.text();
-                    throw new Error(`API Error: ${response.status} - ${errText.substring(0, 50)}`);
-                }
+                if (!response.ok) throw new Error(`Server Error: ${response.status}`);
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
@@ -128,41 +134,38 @@
                             try {
                                 const parsed = JSON.parse(dataStr);
                                 const content = parsed.choices[0].delta.content || "";
+                                if (!content) continue;
+                                
                                 fullText += content;
 
-                                // Resilient Noun Detection: Scans text for the NOUN: marker
+                                // Clear status text as soon as data arrives
+                                if (counselDisplay.innerText === "Reading...") {
+                                    counselDisplay.innerText = "";
+                                }
+
+                                // Identify and Display the NOUN (the Artifact)
                                 if (!nounFound && fullText.toLowerCase().includes('noun:')) {
-                                    const parts = fullText.split('\n');
-                                    const nounLine = parts.find(p => p.toLowerCase().includes('noun:'));
-                                    if (nounLine) {
-                                        const noun = nounLine.split(/noun:/i)[1].trim().toLowerCase().replace(/[^a-z]/g, "");
-                                        if (noun) {
-                                            imageDisplay.innerHTML = `<img src="https://pollinations.ai/p/${noun}?width=800&height=500&seed=${seed}&model=flux&nologo=true">`;
-                                            nounFound = true;
-                                            counselDisplay.innerText = "";
-                                        }
+                                    const match = fullText.match(/NOUN:\s*([a-z\s]+)\n/i);
+                                    if (match && match[1]) {
+                                        const noun = match[1].trim().toLowerCase().replace(/[^a-z]/g, "");
+                                        imageDisplay.innerHTML = `<img src="https://pollinations.ai/p/${noun}?width=800&height=500&seed=${seed}&model=flux&nologo=true" alt="Artifact">`;
+                                        nounFound = true;
                                     }
                                 }
 
-                                if (nounFound) {
-                                    // Filter out the NOUN line so it doesn't show in the text
-                                    const counsel = fullText.split('\n').filter(p => !p.toLowerCase().includes('noun:')).join('\n').trim();
-                                    counselDisplay.innerText = counsel;
-                                    charCount++;
-                                    if (charCount % 4 === 0) TypewriterAudio.playClick();
-                                }
-                            } catch (e) { 
-                                // Silent skip for fragmented JSON chunks
-                            }
+                                // Update text (stripping the NOUN line)
+                                const cleanText = fullText.replace(/NOUN:.*?\n/i, "").trim();
+                                counselDisplay.innerText = cleanText;
+
+                                charCount++;
+                                if (charCount % 4 === 0) TypewriterAudio.playClick();
+                                
+                            } catch (e) { }
                         }
                     }
                 }
-                
-                if (!nounFound) throw new Error("The ghost spoke, but the artifact remained hidden.");
-
             } catch (err) {
-                console.error(err);
-                counselDisplay.innerHTML = `<span style="color:red; font-size: 1rem;">System Error: ${err.message}</span><br><br><button onclick="location.reload()" style="padding: 5px 15px; font-size: 0.8rem; background:#8B1D20; color:white; border:none; border-radius:15px; cursor:pointer;">Try Again</button>`;
+                counselDisplay.innerHTML = `<span style="color:red;">Error: ${err.message}</span>`;
             }
         }
     </script>
