@@ -3,94 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Red Bot Files | Ask me Anything</title>
+    <title>The Red Bot Files | An Artificial Inquiry</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%238B1D20%22><path d=%22M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z%22/></svg>">
     <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <style>
-        :root { --paper: #F4F1EA; --ink: #1a1a1a; --blood: #8B1D20; --dust: #A9A497; }
-        body { background-color: var(--paper); color: var(--ink); font-family: 'EB Garamond', serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 40px 20px; min-height: 100vh; }
-        .header { text-align: center; margin-bottom: 5px; }
-        .logo-svg { width: 40px; fill: var(--blood); margin-bottom: 8px; }
-        h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.2rem; text-transform: uppercase; margin: 0; letter-spacing: 2px; color: var(--blood); }
-        .nav-container { margin-top: 20px; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 500; display: flex; gap: 12px; font-style: italic; }
-        .nav-container a { color: var(--blood); text-decoration: none; }
-        .nav-container .active { font-weight: 800; }
-        .divider { width: 100%; max-width: 1000px; border-bottom: 1px solid #D9D4C7; margin: 25px 0 40px 0; }
-        .input-group { width: 100%; max-width: 600px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
-        textarea { width: 100%; height: 120px; padding: 15px; background: transparent; border: none; font-family: 'EB Garamond', serif; font-size: 1.2rem; resize: none; box-sizing: border-box; text-align: center; }
-        textarea:focus { outline: none; }
-        .btn { padding: 8px 35px; background: transparent; border: 1px solid #D9D4C7; color: var(--blood); font-family: 'EB Garamond', serif; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 4px; cursor: pointer; transition: all 0.3s; width: fit-content; }
-        .btn:hover { border-color: var(--blood); }
-        #result-area { width: 100%; max-width: 900px; display: none; flex-direction: column; align-items: center; margin-top: 40px; }
-        .question-echo { color: var(--blood); font-weight: bold; font-size: 1.3rem; text-align: center; margin-bottom: 40px; max-width: 800px; line-height: 1.3; }
-        .result-content { display: grid; grid-template-columns: 1fr 1.5fr; gap: 50px; width: 100%; }
-        .polaroid-frame { background: white; padding: 15px 15px 60px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transform: rotate(-2deg); height: fit-content; }
-        .polaroid-frame img { width: 100%; height: auto; filter: sepia(0.2) contrast(1.1); display: block; }
-        .answer-text { line-height: 1.6; font-size: 1.2rem; white-space: pre-wrap; color: var(--ink); }
-        #share-container { margin-top: 50px; width: 100%; display: flex; justify-content: center; }
-        .footer { margin-top: auto; text-align: center; font-size: 0.9rem; color: var(--dust); border-top: 1px solid #D9D4C7; padding: 40px 0; font-style: italic; max-width: 800px; width: 100%; line-height: 1.6; }
-        .footer a { color: var(--dust); text-decoration: underline; }
-        .footer .attribution { color: var(--blood); margin-top: 8px; display: block; font-weight: 500; }
-        @media (max-width: 768px) { .result-content { grid-template-columns: 1fr; } }
+        :root { --ink: #1a1a1a; --blood: #8B1D20; --paper: #F4F1EA; --shadow: #D9D4C7; }
+        body { background-color: var(--paper); color: var(--ink); font-family: 'EB Garamond', serif; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        
+        /* Header & Logo */
+        header { width: 100%; padding: 30px 0; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid var(--shadow); }
+        .logo { width: 40px; height: auto; margin-bottom: 15px; fill: var(--blood); }
+        h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2rem; color: var(--blood); text-transform: uppercase; margin: 0; letter-spacing: 2px; }
+        
+        /* Navigation */
+        nav { margin-top: 15px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; font-style: italic; }
+        nav a { color: var(--blood); text-decoration: none; margin: 0 10px; opacity: 0.7; }
+        nav a:hover { opacity: 1; }
+
+        /* Main Inquiry Area */
+        main { flex: 1; width: 90%; max-width: 750px; padding: 50px 0; display: flex; flex-direction: column; }
+        
+        .input-section { margin-bottom: 40px; text-align: center; }
+        textarea { width: 100%; height: 100px; background: transparent; border: 1px solid var(--shadow); border-radius: 4px; padding: 15px; font-family: 'EB Garamond', serif; font-size: 1.2rem; resize: none; box-sizing: border-box; outline: none; transition: border-color 0.3s; }
+        textarea:focus { border-color: var(--blood); }
+        
+        button#submit-btn { margin-top: 20px; background: var(--blood); color: var(--paper); border: none; padding: 10px 30px; font-family: 'IM Fell DW Pica', serif; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; border-radius: 20px; transition: transform 0.2s; }
+        button#submit-btn:hover { transform: scale(1.05); }
+
+        /* Output Display */
+        #output-area { display: none; margin-top: 20px; }
+        #response-question { font-style: italic; color: var(--blood); font-size: 1.3rem; margin-bottom: 40px; text-align: center; line-height: 1.4; }
+        #response-image { width: 100%; margin-bottom: 30px; border-radius: 4px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        #response-image img { width: 100%; height: auto; display: block; filter: sepia(0.2) contrast(1.1); }
+        #response-counsel { font-size: 1.15rem; line-height: 1.8; white-space: pre-wrap; text-align: justify; }
+
+        /* Footer */
+        footer { width: 100%; padding: 60px 20px; text-align: center; font-size: 0.85rem; color: #7F7A6D; border-top: 1px solid var(--shadow); font-style: italic; line-height: 1.6; }
+        footer a { color: #7F7A6D; text-decoration: underline; }
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) { h1 { font-size: 1.5rem; } main { padding: 30px 0; } }
     </style>
 </head>
 <body>
-    <div class="header">
-        <svg class="logo-svg" viewBox="0 0 24 24"><path d="M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z"/></svg>
+
+    <header>
+        <svg class="logo" viewBox="0 0 24 24"><path d="M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z"/></svg>
         <h1>The Red Bot Files</h1>
-    </div>
-    <nav class="nav-container">
-        <span class="active">Ask me Anything</span>
-        <span style="opacity: 0.3">/</span>
-        <a href="/cloud.html">Look Yonder</a>
-    </nav>
-    <div class="divider"></div>
-    <div class="input-group">
-        <textarea id="question-input" placeholder="Write your letter here..."></textarea>
-        <button id="send-btn" class="btn" onclick="askTheArchive()">Submit</button>
-    </div>
-    <div id="result-area">
-        <div id="echo-text" class="question-echo"></div>
-        <div class="result-content">
-            <div class="polaroid-frame">
-                <img id="polaroid-img" src="" alt="Artifact">
-            </div>
-            <div class="answer-text" id="answer-text"></div>
+        <nav>
+            <span>Inquiry</span>
+            <span style="opacity: 0.3; margin: 0 5px;">/</span>
+            <a href="cloud.html">Themes</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="input-section" id="input-container">
+            <textarea id="user-input" placeholder="Type your inquiry here..."></textarea>
+            <button id="submit-btn" onclick="askQuestion()">Send into the Void</button>
         </div>
-        <div id="share-container"></div>
-    </div>
-    <div class="footer">
-        This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for <a href="https://www.theredhandfiles.com/" target="_blank">The Red Hand Files</a>.
-        <span class="attribution">Made with ❤ by <a href="https://github.com/varioni" target="_blank">varioni</a></span>
-    </div>
+
+        <div id="output-area">
+            <div id="response-question"></div>
+            <div id="response-image"></div>
+            <div id="response-counsel"></div>
+        </div>
+    </main>
+
+    <footer>
+        <p>This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for The Red Hand Files.</p>
+    </footer>
+
     <script>
-        async function askTheArchive() {
-            const input = document.getElementById('question-input');
-            const btn = document.getElementById('send-btn');
-            const question = input.value.trim();
-            if (!question) return;
-            input.disabled = true; btn.disabled = true; btn.innerText = "Listening...";
+        // --- TYPEWRITER AUDIO ENGINE ---
+        const TypewriterAudio = {
+            ctx: null,
+            init() {
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            },
+            playClick() {
+                if (!this.ctx) this.init();
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+                
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                // Randomize pitch slightly for organic feel
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(140 + Math.random() * 80, this.ctx.currentTime);
+                
+                gain.gain.setValueAtTime(0.04, this.ctx.currentTime); // Low volume
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.08);
+            }
+        };
+
+        // --- MAIN INQUIRY LOGIC ---
+        async function askQuestion() {
+            const input = document.getElementById('user-input');
+            const questionText = input.value.trim();
+            if (!questionText) return;
+
+            const inputContainer = document.getElementById('input-container');
+            const outputArea = document.getElementById('output-area');
+            const questionDisplay = document.getElementById('response-question');
+            const imageDisplay = document.getElementById('response-image');
+            const counselDisplay = document.getElementById('response-counsel');
+
+            // UI Setup
+            inputContainer.style.display = "none";
+            outputArea.style.display = "block";
+            questionDisplay.innerText = `"${questionText}"`;
+            counselDisplay.innerText = "The ghost is searching...";
+            
+            const seed = Math.floor(Math.random() * 1000);
+
             try {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ question })
+                    body: JSON.stringify({ question: questionText })
                 });
-                const data = await response.json();
-                document.getElementById('echo-text').innerText = question;
-                document.getElementById('answer-text').innerText = data.answer;
-                document.getElementById('polaroid-img').src = `https://loremflickr.com/400/400/${data.noun},stilllife/all?lock=${data.seed}`;
-                document.getElementById('result-area').style.display = 'flex';
-                if (data.shareId) {
-                    const shareUrl = `${window.location.origin}/share.html?id=${data.shareId}`;
-                    document.getElementById('share-container').innerHTML = `<button onclick="copyLink('${shareUrl}')" class="btn">Copy Share Link</button>`;
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                
+                let fullText = "";
+                let nounFound = false;
+                let charCount = 0;
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const dataStr = line.slice(6);
+                            if (dataStr === '[DONE]') break;
+                            
+                            try {
+                                const parsed = JSON.parse(dataStr);
+                                const content = parsed.choices[0].delta.content || "";
+                                fullText += content;
+
+                                // 1. Catch the NOUN (Wait for the first newline)
+                                if (!nounFound && fullText.includes('\n')) {
+                                    const firstLine = fullText.split('\n')[0];
+                                    if (firstLine.includes('NOUN:')) {
+                                        const noun = firstLine.split('NOUN:')[1].trim().toLowerCase().replace(/[^a-z]/g, "");
+                                        const imgUrl = `https://pollinations.ai/p/${noun}?width=800&height=500&seed=${seed}&model=flux&nologo=true`;
+                                        
+                                        // Display image immediately
+                                        imageDisplay.innerHTML = `<img src="${imgUrl}" alt="The Artifact">`;
+                                        nounFound = true;
+                                        counselDisplay.innerText = ""; // Clear loader
+                                    }
+                                }
+
+                                // 2. Stream the Counsel
+                                if (nounFound) {
+                                    const counselParts = fullText.split('\n').slice(1);
+                                    const currentCounsel = counselParts.join('\n').trim();
+                                    counselDisplay.innerText = currentCounsel;
+                                    
+                                    // Play sound every few characters
+                                    charCount++;
+                                    if (charCount % 3 === 0) {
+                                        TypewriterAudio.playClick();
+                                    }
+                                }
+                            } catch (e) { /* End of chunk */ }
+                        }
+                    }
                 }
-                window.scrollTo({ top: document.getElementById('result-area').offsetTop - 50, behavior: 'smooth' });
             } catch (err) {
-                alert("The archive is silent.");
-            } finally { input.disabled = false; btn.disabled = false; btn.innerText = "Submit"; }
+                console.error(err);
+                counselDisplay.innerText = "The archive has fallen into a deep silence.";
+            }
         }
-        function copyLink(url) { navigator.clipboard.writeText(url).then(() => alert("Link copied to clipboard.")); }
     </script>
 </body>
 </html>
