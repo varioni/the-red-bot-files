@@ -15,15 +15,17 @@
         .nav-container a, .nav-container span { color: #7F7A6D; text-decoration: none; }
         .nav-container .active { font-weight: 800; }
         .divider { width: 100%; max-width: 1000px; border-bottom: 1px solid #D9D4C7; margin: 25px 0 40px 0; }
+        
         #input-container { width: 100%; max-width: 700px; text-align: center; }
         textarea { width: 100%; height: 120px; background: transparent; border: none; padding: 15px; font-family: 'EB Garamond', serif; font-size: 1.3rem; color: #1a1a1a; resize: none; box-sizing: border-box; outline: none; }
         .btn-main { margin-top: 25px; background: #8B1D20; color: #F4F1EA; border: none; padding: 12px 35px; font-family: 'IM Fell DW Pica', serif; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; border-radius: 25px; }
+        
         #output-area { width: 100%; max-width: 750px; display: none; }
         #response-question { font-weight: 800; color: #8B1D20; font-size: 1.5rem; margin-bottom: 40px; text-align: center; line-height: 1.4; }
         
-        /* Polaroid Fixed */
+        /* The Polaroid Frame */
         .polaroid { background: white; padding: 15px 15px 60px 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transform: rotate(-1.5deg); margin: 0 auto 50px auto; max-width: 450px; border: 1px solid #E5E1D8; display: none; }
-        .polaroid img { width: 100%; height: auto; display: block; filter: sepia(0.2) contrast(1.05); }
+        .polaroid img { width: 100%; height: auto; display: block; filter: sepia(0.2) contrast(1.05); background: #eee; min-height: 300px; }
         
         #response-counsel { font-size: 1.3rem; line-height: 1.8; white-space: pre-wrap; color: #1a1a1a; text-align: justify; }
         .action-footer { text-align: center; margin-top: 60px; display: none; }
@@ -41,16 +43,21 @@
         <a href="cloud.html">Look Yonder</a>
     </nav>
     <div class="divider"></div>
+
     <div id="input-container">
         <textarea id="user-input" placeholder="write your question here"></textarea><br>
         <button class="btn-main" onclick="askQuestion()">Submit</button>
     </div>
+
     <div id="output-area">
         <div id="response-question"></div>
         <div id="response-image" class="polaroid"></div>
         <div id="response-counsel"></div>
-        <div class="action-footer" id="action-footer"><button class="btn-main" onclick="location.reload()">New Inquiry</button></div>
+        <div class="action-footer" id="action-footer">
+            <button class="btn-main" onclick="location.reload()">New Inquiry</button>
+        </div>
     </div>
+
     <footer>
         This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for <a href="https://www.theredhandfiles.com/" target="_blank">The Red Hand Files</a>.
     </footer>
@@ -77,18 +84,22 @@
             const input = document.getElementById('user-input');
             const questionText = input.value.trim();
             if (!questionText) return;
+
             document.getElementById('input-container').style.display = 'none';
             document.getElementById('output-area').style.display = 'block';
             document.getElementById('response-question').innerText = questionText;
             document.getElementById('response-counsel').innerText = "Reading...";
+            document.getElementById('response-image').style.display = 'none';
             
             const seed = Math.floor(Math.random() * 1000);
+            
             try {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ question: questionText })
                 });
+
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let fullText = "", nounFound = false, buffer = "";
@@ -96,9 +107,11 @@
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
+                    
                     buffer += decoder.decode(value, { stream: true });
                     const lines = buffer.split('\n');
                     buffer = lines.pop(); 
+                    
                     for (const line of lines) {
                         if (line.startsWith('data: ')) {
                             const dataStr = line.slice(6).trim();
@@ -106,33 +119,44 @@
                             try {
                                 const parsed = JSON.parse(dataStr);
                                 const content = parsed.choices[0].delta.content || "";
+                                if (!content) continue;
+                                
                                 fullText += content;
-                                if (document.getElementById('response-counsel').innerText === "Reading...") document.getElementById('response-counsel').innerText = "";
 
-                                // FIXED EXTRACTION: Looks for first colon and takes the very next word
-                                if (!nounFound && fullText.includes(':')) {
-                                    const match = fullText.match(/:\s*([a-zA-Z]+)/);
+                                if (document.getElementById('response-counsel').innerText === "Reading...") {
+                                    document.getElementById('response-counsel').innerText = "";
+                                }
+
+                                // Precise Noun Extraction: must follow the format "NOUN: word"
+                                if (!nounFound && fullText.toUpperCase().includes('NOUN:')) {
+                                    const match = fullText.match(/NOUN:\s*([a-zA-Z]+)/i);
                                     if (match && match[1]) {
                                         const noun = match[1].toLowerCase().trim();
-                                        const imgUrl = `https://pollinations.ai/p/${noun}?width=800&height=800&seed=${seed}&model=flux&nologo=true`;
+                                        // Simple, robust Pollinations URL
+                                        const imgUrl = `https://pollinations.ai/p/${noun}?width=800&height=800&nologo=true&seed=${seed}`;
                                         document.getElementById('response-image').innerHTML = `<img src="${imgUrl}">`;
                                         document.getElementById('response-image').style.display = 'block';
                                         nounFound = true;
                                     }
                                 }
-                                // Hide anything before the first newline (The NOUN line)
-                                const textParts = fullText.split('\n');
-                                if (textParts.length > 1) {
-                                    document.getElementById('response-counsel').innerText = textParts.slice(1).join('\n').trim();
-                                }
 
+                                // Display logic: Hide the NOUN trigger line from the counsel
+                                const linesOfText = fullText.split('\n');
+                                if (linesOfText.length > 1) {
+                                    document.getElementById('response-counsel').innerText = linesOfText.slice(1).join('\n').trim();
+                                }
+                                
                                 if (fullText.length % 5 === 0) TypewriterAudio.playClick();
+                                
                             } catch (e) { }
                         }
                     }
                 }
                 document.getElementById('action-footer').style.display = 'block';
-            } catch (err) { document.getElementById('response-counsel').innerText = "Error: " + err.message; }
+
+            } catch (err) {
+                document.getElementById('response-counsel').innerHTML = `<span style="color:red;">The archive is silent: ${err.message}</span>`;
+            }
         }
     </script>
 </body>
