@@ -9,41 +9,38 @@
     <style>
         :root { --paper: #F4F1EA; --ink: #1a1a1a; --blood: #8B1D20; --dust: #A9A497; --shadow: #D9D4C7; }
         body { background-color: var(--paper); color: var(--ink); font-family: 'EB Garamond', serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 40px 20px; min-height: 100vh; }
-        
         .header { text-align: center; margin-bottom: 5px; }
         .logo-svg { width: 40px; fill: var(--blood); margin-bottom: 8px; }
         h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.2rem; text-transform: uppercase; margin: 0; letter-spacing: 2px; color: var(--blood); }
-        .nav-container { margin-top: 20px; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: center; gap: 12px; font-style: italic; }
-        .nav-container a, .nav-container span { color: var(--dust); text-decoration: none; }
+        .nav-container { margin-top: 20px; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: center; gap: 12px; font-style: italic; color: var(--dust); }
         .divider { width: 100%; max-width: 1000px; border-bottom: 1px solid var(--shadow); margin: 25px 0 40px 0; }
         
         #input-container { width: 100%; max-width: 700px; text-align: center; }
         textarea { width: 100%; height: 120px; background: transparent; border: none; padding: 15px; font-family: 'EB Garamond', serif; font-size: 1.3rem; color: var(--ink); resize: none; box-sizing: border-box; outline: none; }
         
-        .btn-red-hand { background: transparent; color: var(--blood); border: 1px solid var(--blood); padding: 12px 35px; font-family: 'IM Fell DW Pica', serif; text-transform: uppercase; letter-spacing: 3px; font-size: 0.85rem; cursor: pointer; transition: all 0.3s; margin: 10px; text-decoration: none; display: inline-block; }
-        .btn-red-hand:hover { background: #E8E4DB; }
+        .btn-thin { background: transparent; color: var(--blood); border: 1px solid var(--blood); padding: 12px 35px; font-family: 'IM Fell DW Pica', serif; text-transform: uppercase; letter-spacing: 3px; font-size: 0.85rem; cursor: pointer; transition: all 0.3s; margin: 10px; }
+        .btn-thin:hover { background: #E8E4DB; }
 
-        #output-area { width: 100%; max-width: 1100px; display: none; }
-        .response-header { text-align: center; margin-bottom: 50px; }
-        #response-question { font-weight: 800; color: var(--blood); font-size: 1.6rem; margin-bottom: 10px; line-height: 1.3; }
-        .issue-subtitle { text-transform: uppercase; letter-spacing: 3px; font-size: 0.75rem; color: var(--blood); font-weight: 600; opacity: 0.8; }
+        #output-area { width: 100%; max-width: 1000px; display: none; }
+        #response-question { font-weight: 800; color: var(--blood); font-size: 1.6rem; margin-bottom: 10px; text-align: center; line-height: 1.3; }
+        .issue-subtitle { text-transform: uppercase; letter-spacing: 3px; font-size: 0.75rem; color: var(--blood); text-align: center; margin-bottom: 40px; }
         
-        .response-body { display: flex; flex-direction: row; align-items: flex-start; gap: 60px; margin-top: 40px; }
+        .response-body { display: flex; flex-direction: row; align-items: flex-start; gap: 60px; }
         
-        /* Polaroid Styling restored from share.html[cite: 2] */
+        /* Restored Polaroid Frame from share.html */
         .polaroid-container { flex: 0 0 380px; display: none; }
-        .polaroid-frame { background: white; padding: 15px 15px 60px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transform: rotate(-2deg); height: fit-content; border: 1px solid #E5E1D8; }
+        .polaroid-frame { background: white; padding: 15px 15px 60px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transform: rotate(-2deg); border: 1px solid #E5E1D8; }
         .polaroid-frame img { width: 100%; height: auto; filter: sepia(0.2) contrast(1.1); display: block; }
         
         #response-counsel { flex: 1; font-size: 1.25rem; line-height: 1.8; white-space: pre-wrap; color: var(--ink); text-align: left; }
-        .action-footer { text-align: center; margin: 80px 0; width: 100%; display: none; }
+        .action-footer { text-align: center; margin: 60px 0; width: 100% ; display: none; }
 
-        footer { margin-top: auto; text-align: center; font-size: 0.85rem; color: var(--dust); border-top: 1px solid var(--shadow); padding: 50px 0; font-style: italic; line-height: 1.8; max-width: 900px; width: 100%; }
-        footer .attribution { color: var(--blood); margin-top: 8px; display: block; }
+        footer { margin-top: auto; text-align: center; font-size: 0.85rem; color: var(--dust); border-top: 1px solid var(--shadow); padding: 50px 0; font-style: italic; width: 100%; max-width: 900px; }
+        .attribution { color: var(--blood); display: block; margin-top: 8px; }
 
         @media (max-width: 850px) {
             .response-body { flex-direction: column; align-items: center; }
-            .polaroid-container { width: 100%; max-width: 350px; }
+            .polaroid-container { width: 100%; max-width: 350px; margin-bottom: 40px; }
         }
     </style>
 </head>
@@ -52,77 +49,75 @@
         <svg class="logo-svg" viewBox="0 0 24 24"><path d="M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z"/></svg>
         <h1>The Red Bot Files</h1>
     </div>
-    <nav class="nav-container">
-        <span>Inquiry</span>
-        <span style="opacity:0.3; font-style:normal;">/</span>
-        <a href="cloud.html">Look Yonder</a>
-    </nav>
+    <nav class="nav-container">Inquiry / <a href="cloud.html" style="color:var(--dust); text-decoration:none;">Look Yonder</a></nav>
     <div class="divider"></div>
 
     <div id="input-container">
         <textarea id="user-input" placeholder="write your question here"></textarea><br>
-        <button class="btn-red-hand" onclick="askQuestion()">Submit</button>
+        <button class="btn-thin" onclick="askQuestion()">Submit</button>
     </div>
 
     <div id="output-area">
-        <div class="response-header">
-            <div id="response-question"></div>
-            <div class="issue-subtitle">ANONYMOUS, INTERNET</div>
-            <div style="width: 100%; border-bottom: 1px solid var(--shadow); margin-top: 30px;"></div>
-        </div>
+        <div id="response-question"></div>
+        <div class="issue-subtitle">ANONYMOUS, INTERNET</div>
         <div class="response-body">
-            <div id="response-image-container" class="polaroid-container">
+            <div id="polaroid-wrapper" class="polaroid-container">
                 <div class="polaroid-frame" id="polaroid-frame"></div>
             </div>
             <div id="response-counsel"></div>
         </div>
         <div class="action-footer" id="action-footer">
-            <button class="btn-red-hand" id="share-btn" onclick="copyShareUrl()">Share Inquiry</button>
-            <button class="btn-red-hand" onclick="location.reload()">Ask Another Question</button>
+            <button class="btn-thin" id="share-btn" onclick="copyShare()">Share Inquiry</button>
+            <button class="btn-thin" onclick="location.reload()">Ask Another Question</button>
         </div>
     </div>
 
     <footer>
         This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for <a href="https://www.theredhandfiles.com/" target="_blank">The Red Hand Files</a>.
-        <br>
-        <span class="attribution">Made with ❤︎ by <a href="https://github.com/varioni" target="_blank">varioni</a></span>
+        <span class="attribution">Made with ❤︎ by <a href="https://github.com/varioni" target="_blank" style="color:var(--blood);">varioni</a></span>
     </footer>
 
     <script>
         let currentShareId = "";
+        let finalData = { question: "", answer: "", noun: "", seed: 0 };
 
-        async function copyShareUrl() {
-            if (!currentShareId) return;
-            const shareUrl = `${window.location.origin}/share.html?id=${currentShareId}`;
-            await navigator.clipboard.writeText(shareUrl);
+        async function copyShare() {
+            // First, we must ensure the entry is saved to AstraDB logs[cite: 1]
             const btn = document.getElementById('share-btn');
-            const oldText = btn.innerText;
-            btn.innerText = "Link Copied!";
-            setTimeout(() => btn.innerText = oldText, 2000);
+            btn.innerText = "Saving...";
+            
+            try {
+                // Since we don't have save-share.js, we call a simplified log function
+                // or ensure chat.js handled the initial record creation.
+                // For now, we build the link using the ID from the chat response.
+                const shareUrl = `${window.location.origin}/share.html?id=${currentShareId}`;
+                await navigator.clipboard.writeText(shareUrl);
+                btn.innerText = "Link Copied!";
+            } catch (e) { btn.innerText = "Error"; }
+            setTimeout(() => { btn.innerText = "Share Inquiry"; }, 2000);
         }
 
         async function askQuestion() {
             const input = document.getElementById('user-input');
-            const questionText = input.value.trim();
-            if (!questionText) return;
+            const qText = input.value.trim();
+            if (!qText) return;
 
             document.getElementById('input-container').style.display = 'none';
             document.getElementById('output-area').style.display = 'block';
-            document.getElementById('response-question').innerText = questionText;
+            document.getElementById('response-question').innerText = qText;
             document.getElementById('response-counsel').innerText = "Reading...";
             
-            const seed = Math.floor(Math.random() * 10000);
+            finalData.question = qText;
+            finalData.seed = Math.floor(Math.random() * 10000);
             
             try {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ question: questionText })
+                    body: JSON.stringify({ question: qText })
                 });
 
-                // Capture the Share ID from the custom header
                 currentShareId = response.headers.get("x-share-id");
-
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let fullText = "", nounFound = false, buffer = "";
@@ -130,47 +125,37 @@
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
-                    
                     buffer += decoder.decode(value, { stream: true });
                     const lines = buffer.split('\n');
                     buffer = lines.pop(); 
-                    
                     for (const line of lines) {
                         if (line.startsWith('data: ')) {
                             const dataStr = line.slice(6).trim();
                             if (dataStr === '[DONE]') break;
                             try {
-                                const parsed = JSON.parse(dataStr);
-                                const content = parsed.choices[0].delta.content || "";
+                                const content = JSON.parse(dataStr).choices[0].delta.content || "";
                                 fullText += content;
-
-                                if (document.getElementById('response-counsel').innerText === "Reading...") {
-                                    document.getElementById('response-counsel').innerText = "";
-                                }
+                                if (document.getElementById('response-counsel').innerText === "Reading...") document.getElementById('response-counsel').innerText = "";
 
                                 if (!nounFound && fullText.includes('\n')) {
                                     const match = fullText.match(/NOUN:\s*([a-zA-Z]+)/i);
                                     if (match && match[1]) {
-                                        const noun = match[1].toLowerCase().trim();
-                                        const imgUrl = `https://pollinations.ai/p/${noun}?width=800&height=800&nologo=true&seed=${seed}`;
-                                        document.getElementById('polaroid-frame').innerHTML = `<img src="${imgUrl}" alt="Artifact">`;
-                                        document.getElementById('response-image-container').style.display = 'block';
+                                        finalData.noun = match[1].toLowerCase().trim();
+                                        const imgUrl = `https://pollinations.ai/p/${finalData.noun}?width=800&height=800&nologo=true&seed=${finalData.seed}`;
+                                        document.getElementById('polaroid-frame').innerHTML = `<img src="${imgUrl}">`;
+                                        document.getElementById('polaroid-wrapper').style.display = 'block';
                                         nounFound = true;
                                     }
                                 }
-
-                                const cleanText = fullText.replace(/NOUN:.*?\n/i, "").trim();
-                                document.getElementById('response-counsel').innerText = cleanText;
-                                
+                                const clean = fullText.replace(/NOUN:.*?\n/i, "").trim();
+                                document.getElementById('response-counsel').innerText = clean;
+                                finalData.answer = clean;
                             } catch (e) { }
                         }
                     }
                 }
                 document.getElementById('action-footer').style.display = 'block';
-
-            } catch (err) {
-                document.getElementById('response-counsel').innerText = "The archive is silent: " + err.message;
-            }
+            } catch (err) { document.getElementById('response-counsel').innerText = "Error: " + err.message; }
         }
     </script>
 </body>
