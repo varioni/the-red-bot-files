@@ -12,25 +12,25 @@
         .logo-svg { width: 40px; fill: #8B1D20; margin-bottom: 8px; }
         h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.2rem; text-transform: uppercase; margin: 0; letter-spacing: 2px; color: #8B1D20; }
         
-        /* Navigation - Dark Grey */
         .nav-container { margin-top: 20px; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: center; gap: 12px; font-style: italic; }
         .nav-container a, .nav-container span { color: #7F7A6D; text-decoration: none; }
         .nav-container .active { font-weight: 800; }
-
         .divider { width: 100%; max-width: 1000px; border-bottom: 1px solid #D9D4C7; margin: 25px 0 40px 0; }
         
         #input-container { width: 100%; max-width: 700px; text-align: center; }
         textarea { width: 100%; height: 120px; background: transparent; border: none; padding: 15px; font-family: 'EB Garamond', serif; font-size: 1.3rem; color: #1a1a1a; resize: none; box-sizing: border-box; outline: none; }
-        button { margin-top: 25px; background: #8B1D20; color: #F4F1EA; border: none; padding: 12px 35px; font-family: 'IM Fell DW Pica', serif; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; border-radius: 25px; }
+        .btn-main { margin-top: 25px; background: #8B1D20; color: #F4F1EA; border: none; padding: 12px 35px; font-family: 'IM Fell DW Pica', serif; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; border-radius: 25px; transition: opacity 0.3s; }
         
         #output-area { width: 100%; max-width: 750px; display: none; }
-        
-        /* THE RESTORED: Bold Red Question */
         #response-question { font-weight: 800; color: #8B1D20; font-size: 1.5rem; margin-bottom: 40px; text-align: center; line-height: 1.4; }
         
-        #response-image { width: 100%; margin-bottom: 30px; border-radius: 4px; overflow: hidden; }
-        #response-image img { width: 100%; height: auto; display: block; filter: sepia(0.1); }
-        #response-counsel { font-size: 1.3rem; line-height: 1.7; white-space: pre-wrap; color: #1a1a1a; }
+        /* THE POLAROID FRAME */
+        .polaroid { background: white; padding: 15px 15px 50px 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transform: rotate(-1deg); margin: 20px auto 40px; max-width: 500px; border: 1px solid #ddd; }
+        .polaroid img { width: 100%; height: auto; display: block; filter: sepia(0.15) contrast(1.1); }
+        
+        #response-counsel { font-size: 1.3rem; line-height: 1.7; white-space: pre-wrap; color: #1a1a1a; text-align: justify; }
+
+        .action-footer { text-align: center; margin-top: 50px; display: none; }
 
         footer { margin-top: 80px; text-align: center; font-size: 0.9rem; color: #A9A497; border-top: 1px solid #D9D4C7; padding: 40px 0; font-style: italic; line-height: 1.6; max-width: 800px; width: 100%; }
         footer a { color: #A9A497; text-decoration: underline; }
@@ -50,13 +50,16 @@
 
     <div id="input-container">
         <textarea id="user-input" placeholder="write your question here"></textarea><br>
-        <button onclick="askQuestion()">Submit</button>
+        <button class="btn-main" onclick="askQuestion()">Submit</button>
     </div>
 
     <div id="output-area">
         <div id="response-question"></div>
         <div id="response-image"></div>
         <div id="response-counsel"></div>
+        <div class="action-footer" id="action-footer">
+            <button class="btn-main" onclick="location.reload()">New Inquiry</button>
+        </div>
     </div>
 
     <footer>
@@ -83,14 +86,15 @@
 
         async function askQuestion() {
             const input = document.getElementById('user-input');
-            const questionText = input.value;
+            const questionText = input.value.trim();
             if (!questionText) return;
 
-            const counselDisplay = document.getElementById('response-counsel');
-            const imageDisplay = document.getElementById('response-image');
-            const questionDisplay = document.getElementById('response-question');
             const inputContainer = document.getElementById('input-container');
             const outputArea = document.getElementById('output-area');
+            const questionDisplay = document.getElementById('response-question');
+            const imageDisplay = document.getElementById('response-image');
+            const counselDisplay = document.getElementById('response-counsel');
+            const actionFooter = document.getElementById('action-footer');
 
             inputContainer.style.display = 'none';
             outputArea.style.display = 'block';
@@ -112,17 +116,14 @@
                 let fullText = "";
                 let nounFound = false;
                 let charCount = 0;
-                let buffer = ""; // THE FIX: Stream buffer
+                let buffer = "";
 
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
                     
-                    // Decode with stream:true to handle multi-byte characters
                     buffer += decoder.decode(value, { stream: true });
-                    
                     const lines = buffer.split('\n');
-                    // Keep the last partial line in the buffer
                     buffer = lines.pop(); 
                     
                     for (const line of lines) {
@@ -140,15 +141,17 @@
                                     counselDisplay.innerText = "";
                                 }
 
+                                // HIDING LOGIC: Look for NOUN: and trigger polaroid
                                 if (!nounFound && fullText.toLowerCase().includes('noun:')) {
                                     const match = fullText.match(/NOUN:\s*([a-z\s]+)\n/i);
                                     if (match && match[1]) {
                                         const noun = match[1].trim().toLowerCase().replace(/[^a-z]/g, "");
-                                        imageDisplay.innerHTML = `<img src="https://pollinations.ai/p/${noun}?width=800&height=500&seed=${seed}&model=flux&nologo=true">`;
+                                        imageDisplay.innerHTML = `<div class="polaroid"><img src="https://pollinations.ai/p/${noun}?width=800&height=800&seed=${seed}&model=flux&nologo=true"></div>`;
                                         nounFound = true;
                                     }
                                 }
 
+                                // DISPLAY: Only show text that is NOT the NOUN line
                                 const cleanText = fullText.replace(/NOUN:.*?\n/i, "").trim();
                                 counselDisplay.innerText = cleanText;
 
@@ -159,6 +162,9 @@
                         }
                     }
                 }
+                // Show the reset button after stream finishes
+                actionFooter.style.display = 'block';
+
             } catch (err) {
                 counselDisplay.innerHTML = `<span style="color:red;">Error: ${err.message}</span>`;
             }
