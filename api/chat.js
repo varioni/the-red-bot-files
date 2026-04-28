@@ -7,28 +7,29 @@ export default async function handler(req) {
     const body = await req.json();
     const { question, isUpdate, id, answer, noun, seed } = body;
     
-    // Using modern WHATWG URL API construction to avoid deprecation warnings
+    // Modern URL construction to satisfy Vercel's deprecation warnings
     const astraUrl = new URL(`${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/logs`);
 
-    // MODE A: The Final Update (Saves completed counsel to AstraDB)
+    // MODE A: The Final Update (Locks in the answer, noun, and seed)
     if (isUpdate) {
-      await fetch(astraUrl.toString(), {
+      const updateRes = await fetch(astraUrl.toString(), {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          "findOneAndUpdate": {
+          "updateOne": {
             "filter": { "_id": id },
             "update": { "$set": { "answer": answer, "noun": noun, "seed": seed } }
           }
         })
       });
-      return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json' } });
+      const updateData = await updateRes.json();
+      return new Response(JSON.stringify(updateData), { headers: { 'Content-Type': 'application/json' } });
     }
 
     // MODE B: The AI Inquiry (The Holy Text)
     const newId = crypto.randomUUID(); 
 
-    // Create placeholder record in 'logs' collection
+    // Create placeholder record[cite: 1]
     await fetch(astraUrl.toString(), {
       method: 'POST',
       headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
@@ -47,7 +48,7 @@ export default async function handler(req) {
       });
       const archData = await archRes.json();
       archiveMemory = (archData?.data?.documents || []).map(doc => `INQUIRY: ${doc.question}\nRESPONSE: ${doc.answer}`).join("\n\n---\n\n");
-    } catch (e) { console.error("DNA Error"); }
+    } catch (e) { console.error("Archive DNA Unavailable"); }
 
     const systemPrompt = `You are the author of the following archive. 
     
@@ -64,9 +65,10 @@ export default async function handler(req) {
     - SUBSTANCE: Do not hide behind vague metaphors. Arrive at a concrete answer, a personal truth, or a specific piece of advice. If the user asks a question, answer it directly.
     - GROUNDEDNESS: Write in poetic language using the gritty, analog reality found in your archives.
     - THE PIVOT: Paraphrase the user's question in the first paragraph. In the second paragraph, provide a "hard-won" insight. The third paragraph is for a quiet, personal closing.
+    - FIGURES: Naturally mention 1-2 historical/artistic figures ONLY if they truly fit.
     - STRUCTURE: Three paragraphs only. No bold text, no bullet points.`;
 
-    const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const aiRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -77,9 +79,22 @@ export default async function handler(req) {
       })
     });
 
-    return new Response(aiResponse.body, {
-      headers: { "Content-Type": "text/event-stream", "x-share-id": newId }
+    // Custom stream: Prepend the ID so the frontend can't miss it[cite: 1]
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        controller.enqueue(encoder.encode(`data: {"id": "${newId}"}\n\n`));
+        const reader = aiRes.body.getReader();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          controller.enqueue(value);
+        }
+        controller.close();
+      }
     });
+
+    return new Response(stream, { headers: { "Content-Type": "text/event-stream" } });
 
   } catch (err) { return new Response(JSON.stringify({ error: err.message }), { status: 500 }); }
 }
