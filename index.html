@@ -1,10 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Red Bot Files | An Artificial Inquiry</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%238B1D20%22><path d=%22M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z%22/></svg>">
+    <meta charset="UTF-8"><title>The Red Bot Files | An Artificial Inquiry</title>
     <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <style>
         :root { --paper: #F4F1EA; --ink: #1a1a1a; --blood: #8B1D20; --nav-grey: #7F7A6D; --shadow: #D9D4C7; }
@@ -21,21 +18,16 @@
         #output-area { width: 100%; max-width: 1100px; display: none; }
         #response-question { font-weight: 800; color: var(--blood); font-size: 1.6rem; margin-bottom: 10px; text-align: center; line-height: 1.3; }
         .issue-subtitle { text-transform: uppercase; letter-spacing: 3px; font-size: 0.75rem; color: var(--blood); text-align: center; margin-bottom: 40px; font-weight: 600; opacity: 0.8; }
-        
         .response-body { display: flex; flex-direction: row; align-items: flex-start; gap: 60px; margin-top: 40px; }
+        /* Elvis Style */
         .polaroid-container { flex: 0 0 380px; display: none; }
         .polaroid-frame { background: white; padding: 15px 15px 60px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transform: rotate(-2deg); height: fit-content; border: 1px solid #E5E1D8; }
         .polaroid-frame img { width: 100%; height: auto; filter: sepia(0.2) contrast(1.1); display: block; }
-        
         #response-counsel { flex: 1; font-size: 1.25rem; line-height: 1.8; white-space: pre-wrap; color: var(--ink); text-align: left; }
         .action-footer { text-align: center; margin: 80px 0; width: 100%; display: none; }
-        footer { margin-top: auto; text-align: center; font-size: 0.85rem; color: #A9A497; border-top: 1px solid var(--shadow); padding: 50px 0; font-style: italic; width: 100%; max-width: 900px; line-height: 1.6; }
+        footer { margin-top: auto; text-align: center; font-size: 0.85rem; color: #A9A497; border-top: 1px solid var(--shadow); padding: 50px 0; font-style: italic; width: 100%; max-width: 900px; }
         .attribution { color: var(--blood); display: block; margin-top: 8px; }
-
-        @media (max-width: 850px) {
-            .response-body { flex-direction: column; align-items: center; }
-            .polaroid-container { width: 100%; max-width: 350px; margin-bottom: 40px; }
-        }
+        @media (max-width: 850px) { .response-body { flex-direction: column; align-items: center; } .polaroid-container { width: 100%; max-width: 350px; margin-bottom: 40px; } }
     </style>
 </head>
 <body>
@@ -45,12 +37,10 @@
     </div>
     <nav class="nav-container">Inquiry / <a href="cloud.html" style="color:var(--nav-grey); text-decoration:none;">Look Yonder</a></nav>
     <div class="divider"></div>
-
     <div id="input-container">
         <textarea id="user-input" placeholder="write your question here"></textarea><br>
         <button class="btn-thin" onclick="askQuestion()">Submit</button>
     </div>
-
     <div id="output-area">
         <div id="response-question"></div>
         <div class="issue-subtitle">ANONYMOUS, INTERNET</div>
@@ -63,20 +53,14 @@
             <button class="btn-thin" onclick="location.reload()">Ask Another Question</button>
         </div>
     </div>
-
-    <footer>
-        This fan-made experiment in artificial intelligence is part tribute and part parody.
-        <span class="attribution">Made with ❤︎ by <a href="https://github.com/varioni" target="_blank" style="color:var(--blood); text-decoration:none;">varioni</a></span>
-    </footer>
-
+    <footer>This fan-made experiment in AI is part tribute and part parody.<span class="attribution">Made with ❤︎ by <a href="https://github.com/varioni" target="_blank" style="color:var(--blood); text-decoration:none;">varioni</a></span></footer>
     <script>
         let shareId = "";
         let finalNoun = "";
 
         async function copyShare() {
             if (!shareId) return;
-            const shareUrl = `${window.location.origin}/share.html?id=${shareId}`;
-            await navigator.clipboard.writeText(shareUrl);
+            await navigator.clipboard.writeText(`${window.location.origin}/share.html?id=${shareId}`);
             const btn = document.getElementById('share-btn');
             btn.innerText = "Link Copied!";
             setTimeout(() => { btn.innerText = "Share Inquiry"; }, 2000);
@@ -86,22 +70,13 @@
             const input = document.getElementById('user-input');
             const qText = input.value.trim();
             if (!qText) return;
-
             document.getElementById('input-container').style.display = 'none';
             document.getElementById('output-area').style.display = 'block';
             document.getElementById('response-question').innerText = qText;
             document.getElementById('response-counsel').innerText = "Reading...";
-            
             const seed = Math.floor(Math.random() * 10000);
-            
             try {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ question: qText })
-                });
-
-                shareId = response.headers.get("x-share-id");
+                const response = await fetch('/api/chat', { method: 'POST', body: JSON.stringify({ question: qText }) });
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let fullText = "", nounFound = false, buffer = "";
@@ -112,17 +87,17 @@
                     buffer += decoder.decode(value, { stream: true });
                     const lines = buffer.split('\n');
                     buffer = lines.pop(); 
-                    
                     for (const line of lines) {
                         if (line.startsWith('data: ')) {
                             const dataStr = line.slice(6).trim();
                             if (dataStr === '[DONE]') break;
                             try {
                                 const parsed = JSON.parse(dataStr);
+                                // CRITICAL: CAPTURE ID FROM STREAM[cite: 1]
+                                if (parsed.id) { shareId = parsed.id; console.log("ID Captured:", shareId); continue; }
                                 const content = parsed.choices[0].delta.content || "";
                                 fullText += content;
                                 if (document.getElementById('response-counsel').innerText === "Reading...") document.getElementById('response-counsel').innerText = "";
-
                                 if (!nounFound && fullText.includes('\n')) {
                                     const match = fullText.match(/N(?:OUN)?:\s*([a-zA-Z\-]+)/i);
                                     if (match && match[1]) {
@@ -143,20 +118,17 @@
                         }
                     }
                 }
-
-                // THE DOUBLE HANDSHAKE: Update placeholder with final counsel[cite: 1]
-                await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        isUpdate: true, 
-                        id: shareId, 
-                        answer: document.getElementById('response-counsel').innerText,
-                        noun: finalNoun,
-                        seed: seed
-                    })
-                });
-
+                // THE FINAL HANDSHAKE: Locking in the counsel[cite: 1]
+                if (shareId) {
+                    console.log("Saving full counsel to DB...");
+                    const saveRes = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ isUpdate: true, id: shareId, answer: document.getElementById('response-counsel').innerText, noun: finalNoun, seed: seed })
+                    });
+                    const saveStatus = await saveRes.json();
+                    console.log("Save complete:", saveStatus);
+                }
                 document.getElementById('action-footer').style.display = 'block';
             } catch (err) { document.getElementById('response-counsel').innerText = "Error: " + err.message; }
         }
