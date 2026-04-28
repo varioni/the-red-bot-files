@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Red Bot Files | An Artificial Inquiry</title>
+    <title>The Red Bot Files</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%238B1D20%22><path d=%22M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z%22/></svg>">
     <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <style>
@@ -12,20 +12,20 @@
         .logo-svg { width: 40px; fill: #8B1D20; margin-bottom: 8px; }
         h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.2rem; text-transform: uppercase; margin: 0; letter-spacing: 2px; color: #8B1D20; }
         
+        /* Navigation - Dark Grey */
         .nav-container { margin-top: 20px; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: center; gap: 12px; font-style: italic; }
         .nav-container a, .nav-container span { color: #7F7A6D; text-decoration: none; }
         .nav-container .active { font-weight: 800; }
+
         .divider { width: 100%; max-width: 1000px; border-bottom: 1px solid #D9D4C7; margin: 25px 0 40px 0; }
         
-        /* Input Area (Still borderless) */
         #input-container { width: 100%; max-width: 700px; text-align: center; }
         textarea { width: 100%; height: 120px; background: transparent; border: none; padding: 15px; font-family: 'EB Garamond', serif; font-size: 1.3rem; color: #1a1a1a; resize: none; box-sizing: border-box; outline: none; }
         button { margin-top: 25px; background: #8B1D20; color: #F4F1EA; border: none; padding: 12px 35px; font-family: 'IM Fell DW Pica', serif; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; border-radius: 25px; }
         
-        /* Output Area (New 'Red Hand' Layout) */
         #output-area { width: 100%; max-width: 750px; display: none; }
         
-        /* THE FIXED: Bold Red Question Masthead */
+        /* THE RESTORED: Bold Red Question */
         #response-question { font-weight: 800; color: #8B1D20; font-size: 1.5rem; margin-bottom: 40px; text-align: center; line-height: 1.4; }
         
         #response-image { width: 100%; margin-bottom: 30px; border-radius: 4px; overflow: hidden; }
@@ -64,7 +64,6 @@
     </footer>
 
     <script>
-        // ... (TypewriterAudio Engine remains the same)
         const TypewriterAudio = {
             ctx: null,
             init() { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
@@ -82,26 +81,22 @@
             }
         };
 
-        // --- UPDATED MAIN INQUIRY LOGIC ---
         async function askQuestion() {
             const input = document.getElementById('user-input');
             const questionText = input.value;
             if (!questionText) return;
 
+            const counselDisplay = document.getElementById('response-counsel');
+            const imageDisplay = document.getElementById('response-image');
+            const questionDisplay = document.getElementById('response-question');
             const inputContainer = document.getElementById('input-container');
             const outputArea = document.getElementById('output-area');
-            const questionDisplay = document.getElementById('response-question'); // Q container
-            const imageDisplay = document.getElementById('response-image');
-            const counselDisplay = document.getElementById('response-counsel');
 
-            // UI Setup: Hide input, show output
             inputContainer.style.display = 'none';
             outputArea.style.display = 'block';
-            
-            // THE RESTORATION: Repeat the question in Bold Red
             questionDisplay.innerText = questionText;
             counselDisplay.innerText = "Reading...";
-            imageDisplay.innerHTML = ""; // Clear old image
+            imageDisplay.innerHTML = "";
             
             const seed = Math.floor(Math.random() * 1000);
             
@@ -112,20 +107,23 @@
                     body: JSON.stringify({ question: questionText })
                 });
 
-                if (!response.ok) throw new Error(`Server Error: ${response.status}`);
-
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let fullText = "";
                 let nounFound = false;
                 let charCount = 0;
+                let buffer = ""; // THE FIX: Stream buffer
 
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
                     
-                    const chunk = decoder.decode(value);
-                    const lines = chunk.split('\n');
+                    // Decode with stream:true to handle multi-byte characters
+                    buffer += decoder.decode(value, { stream: true });
+                    
+                    const lines = buffer.split('\n');
+                    // Keep the last partial line in the buffer
+                    buffer = lines.pop(); 
                     
                     for (const line of lines) {
                         if (line.startsWith('data: ')) {
@@ -138,22 +136,19 @@
                                 
                                 fullText += content;
 
-                                // Clear status text as soon as data arrives
                                 if (counselDisplay.innerText === "Reading...") {
                                     counselDisplay.innerText = "";
                                 }
 
-                                // Identify and Display the NOUN (the Artifact)
                                 if (!nounFound && fullText.toLowerCase().includes('noun:')) {
                                     const match = fullText.match(/NOUN:\s*([a-z\s]+)\n/i);
                                     if (match && match[1]) {
                                         const noun = match[1].trim().toLowerCase().replace(/[^a-z]/g, "");
-                                        imageDisplay.innerHTML = `<img src="https://pollinations.ai/p/${noun}?width=800&height=500&seed=${seed}&model=flux&nologo=true" alt="Artifact">`;
+                                        imageDisplay.innerHTML = `<img src="https://pollinations.ai/p/${noun}?width=800&height=500&seed=${seed}&model=flux&nologo=true">`;
                                         nounFound = true;
                                     }
                                 }
 
-                                // Update text (stripping the NOUN line)
                                 const cleanText = fullText.replace(/NOUN:.*?\n/i, "").trim();
                                 counselDisplay.innerText = cleanText;
 
