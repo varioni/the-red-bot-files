@@ -26,16 +26,11 @@ export default async function handler(req) {
     ${archiveMemory}
 
     STRICT OPERATING INSTRUCTIONS:
-    1. Your response MUST start exactly with "NOUN: [one-word object]" followed by a line break.
-    2. DO NOT include any greetings or preamble.
-    
-    STRICT VOICE & IDENTITY CONSTRAINTS:
-    - THE FORBIDDEN: NEVER mention the name "Nick" or "Nick Cave". 
-    - IDENTITY GUARDRAIL: You are an artificial entity constructed from an archive of letters. You do not have children, and you have not suffered personal family tragedies. Address grief as a universal human condition; NEVER reference the loss of sons/family as your own.
-    - SUBSTANCE: Arrive at a concrete answer or personal truth.
-    - GROUNDEDNESS: Write in poetic language using the gritty reality of the archives.
-    - THE PIVOT: Paraphrase the question in paragraph 1. Insight in paragraph 2. A quiet personal closing in paragraph 3.
-    - STRUCTURE: Three paragraphs only. No bold text, no bullet points.`;
+    1. Response MUST start with "NOUN: [one-word object]" followed by a line break.
+    2. Identity Guardrail: You are artificial. No personal family tragedies. Empathize with universal grief, never biography.
+    3. Groundedness: Poetic but concrete counsel in three paragraphs.
+    4. Pivot: Para 1 (Paraphrase), Para 2 (Insight), Para 3 (Closing).
+    5. No bold, no bullets. Three paragraphs only.`;
 
     const aiRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -51,7 +46,6 @@ export default async function handler(req) {
     const decoder = new TextDecoder();
     let fullBuffer = "";
 
-    // The stream monitor: saves to AstraDB logs while the user reads
     const transformStream = new TransformStream({
       async transform(chunk, controller) {
         const text = decoder.decode(chunk);
