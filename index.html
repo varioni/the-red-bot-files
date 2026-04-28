@@ -9,32 +9,27 @@
     <style>
         :root { --paper: #F4F1EA; --ink: #1a1a1a; --blood: #8B1D20; --nav-grey: #7F7A6D; --shadow: #D9D4C7; }
         body { background-color: var(--paper); color: var(--ink); font-family: 'EB Garamond', serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 40px 20px; min-height: 100vh; }
-        
         .header { text-align: center; margin-bottom: 5px; }
         .logo-svg { width: 40px; fill: var(--blood); margin-bottom: 8px; }
         h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.2rem; text-transform: uppercase; margin: 0; letter-spacing: 2px; color: var(--blood); }
         .nav-container { margin-top: 20px; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: center; gap: 12px; font-style: italic; color: var(--nav-grey); }
         .divider { width: 100%; max-width: 1000px; border-bottom: 1px solid var(--shadow); margin: 25px 0 40px 0; }
-        
         #input-container { width: 100%; max-width: 700px; text-align: center; }
         textarea { width: 100%; height: 120px; background: transparent; border: none; padding: 15px; font-family: 'EB Garamond', serif; font-size: 1.3rem; color: var(--ink); resize: none; box-sizing: border-box; outline: none; }
-        
         .btn-thin { background: transparent; color: var(--blood); border: 1px solid var(--blood); padding: 12px 35px; font-family: 'IM Fell DW Pica', serif; text-transform: uppercase; letter-spacing: 3px; font-size: 0.85rem; cursor: pointer; transition: all 0.3s; margin: 10px; }
         .btn-thin:hover { background: #E8E4DB; }
-
         #output-area { width: 100%; max-width: 1100px; display: none; }
         #response-question { font-weight: 800; color: var(--blood); font-size: 1.6rem; margin-bottom: 10px; text-align: center; line-height: 1.3; }
         .issue-subtitle { text-transform: uppercase; letter-spacing: 3px; font-size: 0.75rem; color: var(--blood); text-align: center; margin-bottom: 40px; font-weight: 600; opacity: 0.8; }
-        
-        /* Restored Elvis Layout[cite: 2] */
         .response-body { display: flex; flex-direction: row; align-items: flex-start; gap: 60px; margin-top: 40px; }
+        
+        /* Restored Polaroid Frame Styling */
         .polaroid-container { flex: 0 0 380px; display: none; }
-        .polaroid-frame { background: white; padding: 15px 15px 60px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transform: rotate(-2deg); border: 1px solid #E5E1D8; }
+        .polaroid-frame { background: white; padding: 15px 15px 60px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transform: rotate(-2deg); height: fit-content; border: 1px solid #E5E1D8; }
         .polaroid-frame img { width: 100%; height: auto; filter: sepia(0.2) contrast(1.1); display: block; }
         
         #response-counsel { flex: 1; font-size: 1.25rem; line-height: 1.8; white-space: pre-wrap; color: var(--ink); text-align: left; }
         .action-footer { text-align: center; margin: 80px 0; width: 100%; display: none; }
-
         footer { margin-top: auto; text-align: center; font-size: 0.85rem; color: #A9A497; border-top: 1px solid var(--shadow); padding: 50px 0; font-style: italic; width: 100%; max-width: 900px; line-height: 1.6; }
         footer a { color: #A9A497; text-decoration: underline; }
         .attribution { color: var(--blood); display: block; margin-top: 8px; }
@@ -77,11 +72,11 @@
     </footer>
 
     <script>
-        let currentShareId = "";
+        let shareId = "";
 
         async function copyShare() {
-            if (!currentShareId) return;
-            const shareUrl = `${window.location.origin}/share.html?id=${currentShareId}`;
+            if (!shareId) return;
+            const shareUrl = `${window.location.origin}/share.html?id=${shareId}`;
             await navigator.clipboard.writeText(shareUrl);
             const btn = document.getElementById('share-btn');
             btn.innerText = "Link Copied!";
@@ -107,7 +102,7 @@
                     body: JSON.stringify({ question: qText, seed: seed })
                 });
 
-                currentShareId = response.headers.get("x-share-id");
+                shareId = response.headers.get("x-share-id");
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let fullText = "", nounFound = false, buffer = "";
@@ -115,7 +110,6 @@
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
-                    
                     buffer += decoder.decode(value, { stream: true });
                     const lines = buffer.split('\n');
                     buffer = lines.pop(); 
@@ -125,16 +119,17 @@
                             const dataStr = line.slice(6).trim();
                             if (dataStr === '[DONE]') break;
                             try {
-                                const content = JSON.parse(dataStr).choices[0].delta.content || "";
+                                const parsed = JSON.parse(dataStr);
+                                const content = parsed.choices[0].delta.content || "";
                                 fullText += content;
                                 if (document.getElementById('response-counsel').innerText === "Reading...") document.getElementById('response-counsel').innerText = "";
 
-                                // FIXED NOUN CATCHER: Looks for the NOUN regardless of jumbled leading characters
+                                // SYNCED IMAGE LOGIC: Using LoremFlickr to match share.html[cite: 2]
                                 if (!nounFound && fullText.includes('\n')) {
-                                    const match = fullText.match(/N(?:OUN)?:\s*([a-zA-Z]+)/i);
+                                    const match = fullText.match(/N(?:OUN)?:\s*([a-zA-Z\-]+)/i);
                                     if (match && match[1]) {
                                         const noun = match[1].toLowerCase().trim();
-                                        const imgUrl = `https://pollinations.ai/p/${noun}?width=800&height=800&nologo=true&seed=${seed}`;
+                                        const imgUrl = `https://loremflickr.com/800/800/${noun},gothic/all?lock=${seed}`;
                                         const img = new Image();
                                         img.onload = () => {
                                             document.getElementById('polaroid-frame').innerHTML = `<img src="${imgUrl}">`;
@@ -145,10 +140,8 @@
                                     }
                                 }
                                 
-                                // Clean only the NOUN line, leaving the counsel intact
                                 const clean = fullText.replace(/^.*N(?:OUN)?:\s*.*?\n/im, "").trim();
                                 document.getElementById('response-counsel').innerText = clean;
-                                
                             } catch (e) { }
                         }
                     }
