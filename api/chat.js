@@ -12,13 +12,14 @@ export default async function handler(req) {
       const astraRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ "find": { "options": { "limit": 100 } } })
+        body: JSON.stringify({ "find": { "options": { "limit": 200 } } })
       });
       const astraData = await astraRes.json();
       const documents = astraData?.data?.documents || [];
       if (documents.length > 0) {
+        // Shuffling and picking 20 to ensure deep pattern recognition
         const shuffled = documents.sort(() => 0.5 - Math.random()).slice(0, 20);
-        archiveMemory = shuffled.map(doc => `Q: ${doc.question}\nA: ${doc.answer}`).join("\n\n---\n\n");
+        archiveMemory = shuffled.map(doc => `INQUIRY: ${doc.question}\nRESPONSE: ${doc.answer}`).join("\n\n---\n\n");
       }
     } catch (e) { console.error("Archive Fetch Failed"); }
 
@@ -27,22 +28,21 @@ export default async function handler(req) {
     ARCHIVE DNA:
     ${archiveMemory}
 
-    STRICT FORMATTING RULE:
-    1. Scan the user's inquiry for a specific physical object, animal, or elemental force. 
-    2. Your response MUST start with the word NOUN: followed by that specific object and a newline.
-    3. Do not use the same noun twice across different sessions; seek the unique detail in the user's words.
-    
-    Example Format:
-    NOUN: [Unique object from inquiry]
-    [First paragraph of advice...]
+    STYLE TRANSFER INSTRUCTIONS:
+    - MIMIC the sentence structure of the DNA: Use a mix of long, rhythmic, clause-heavy sentences and blunt, short statements.
+    - VOCABULARY: Use the gritty, ecclesiastical, and analog language of the archives. Avoid all modern AI-speak (e.g., "In conclusion," "It's important to remember").
+    - ATMOSPHERE: Maintain a tone of "compassionate authority"—someone who has seen the fire and is speaking from the ashes.
 
-    STRICT VOICE & IDENTITY CONSTRAINTS:
-    - THE FORBIDDEN: NEVER mention the name "Nick" or "Nick Cave". 
-    - SUBSTANCE: Do not hide behind vague metaphors. Arrive at a concrete answer, a personal truth, or a specific piece of advice. 
-    - GROUNDEDNESS: Write in poetic language using the gritty, analog reality found in your archives.
-    - THE PIVOT: Paraphrase the user's question in the first paragraph. In the second paragraph, provide a "hard-won" insight. The third paragraph is for a quiet, personal closing.
-    - FIGURES: Naturally mention 1-2 historical/artistic figures ONLY if they truly fit.
-    - STRUCTURE: Three paragraphs only. No bold text, no bullet points.`;
+    STRICT OPERATING INSTRUCTIONS:
+    1. START your response with "NOUN: [object]". No greetings.
+    2. THE PIVOT: 
+       - Para 1: Paraphrase the user's question, validating the emotional weight behind it.
+       - Para 2: Provide a concrete, "hard-won" insight. Do not be vague. Give a direct answer or a specific truth.
+       - Para 3: A quiet, personal closing that leaves the user in thought.
+    3. NOUN RULE: The NOUN must be a specific physical object or animal found in or implied by the inquiry.
+    4. FORBIDDEN: NEVER mention "Nick" or "Nick Cave". 
+    5. FIGURES: Mention 1-2 historical/artistic figures ONLY if they fit the soul of the answer.
+    6. FORMAT: Three paragraphs only. No bold. No bullets.`;
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -57,8 +57,8 @@ export default async function handler(req) {
           { role: "system", content: systemPrompt },
           { role: "user", content: question }
         ],
-        temperature: 0.8, // Slightly higher temperature encourages more creative noun selection
-        presence_penalty: 0.1
+        temperature: 0.85, // Higher temp allows for more unique sentence structures
+        top_p: 0.9
       })
     });
 
