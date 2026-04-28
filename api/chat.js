@@ -6,7 +6,6 @@ export default async function handler(req) {
   try {
     const { question } = await req.json();
 
-    // 1. DATA FETCH: 20 random samples for DNA
     let archiveMemory = "";
     try {
       const astraUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/archives`;
