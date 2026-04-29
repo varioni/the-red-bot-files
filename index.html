@@ -9,10 +9,16 @@
     <style>
         :root { --paper: #F4F1EA; --ink: #1a1a1a; --blood: #8B1D20; --nav-grey: #7F7A6D; --shadow: #D9D4C7; }
         body { background-color: var(--paper); color: var(--ink); font-family: 'EB Garamond', serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 40px 20px; min-height: 100vh; }
+        
         .header { text-align: center; margin-bottom: 5px; }
         .logo-svg { width: 40px; fill: var(--blood); margin-bottom: 8px; }
         h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.2rem; text-transform: uppercase; margin: 0; letter-spacing: 2px; color: var(--blood); }
-        .nav-container { margin-top: 20px; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: center; gap: 12px; font-style: italic; color: var(--nav-grey); }
+        
+        /* Restored Menu Colors & Styling */
+        .nav-container { margin-top: 20px; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: center; gap: 15px; font-style: italic; color: var(--nav-grey); }
+        .nav-active { color: var(--blood); text-decoration: none; }
+        .nav-link { color: var(--nav-grey); text-decoration: none; font-weight: 600; }
+        
         .divider { width: 100%; max-width: 1000px; border-bottom: 1px solid var(--shadow); margin: 25px 0 40px 0; }
         
         #input-container { width: 100%; max-width: 700px; text-align: center; }
@@ -33,8 +39,11 @@
         #response-counsel { flex: 1; font-size: 1.25rem; line-height: 1.8; white-space: pre-wrap; color: var(--ink); text-align: left; }
         .action-footer { text-align: center; margin: 80px 0; width: 100%; display: none; }
 
-        footer { margin-top: auto; text-align: center; font-size: 0.85rem; color: #A9A497; border-top: 1px solid var(--shadow); padding: 50px 0; font-style: italic; width: 100%; max-width: 900px; }
-        .attribution { color: var(--blood); display: block; margin-top: 8px; }
+        /* Restored Footer Styles */
+        footer { margin-top: auto; text-align: center; font-size: 0.85rem; color: var(--nav-grey); border-top: 1px solid var(--shadow); padding: 50px 0; font-style: italic; width: 100%; max-width: 900px; line-height: 1.6; }
+        footer a { color: var(--nav-grey); text-decoration: underline; }
+        .attribution { color: var(--blood); display: block; margin-top: 15px; font-style: italic; font-weight: 500; }
+        .attribution a { color: var(--blood); text-decoration: underline; }
 
         @media (max-width: 850px) {
             .response-body { flex-direction: column; align-items: center; }
@@ -47,7 +56,14 @@
         <svg class="logo-svg" viewBox="0 0 24 24"><path d="M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z"/></svg>
         <h1>The Red Bot Files</h1>
     </div>
-    <nav class="nav-container">Inquiry / <a href="cloud.html" style="color:var(--nav-grey); text-decoration:none;">Look Yonder</a></nav>
+    
+    <!-- Restored Navigation Labels & Colors -->
+    <nav class="nav-container">
+        <a href="index.html" class="nav-active">ASK ME ANYTHING</a> 
+        <span>/</span> 
+        <a href="cloud.html" class="nav-link">LOOK YONDER</a>
+    </nav>
+
     <div class="divider"></div>
 
     <div id="input-container">
@@ -70,9 +86,10 @@
         </div>
     </div>
 
+    <!-- Restored Original Footer Wording -->
     <footer>
-        This fan-made experiment in AI is part tribute and part parody.<br>
-        <span class="attribution">Made with ❤︎ by <a href="https://github.com/varioni" target="_blank" style="color:var(--blood); text-decoration:none;">varioni</a></span>
+        This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for <a href="https://www.theredhandfiles.com/" target="_blank">The Red Hand Files</a>.
+        <span class="attribution">Made with ❤ by <a href="https://github.com/varioni" target="_blank">varioni</a></span>
     </footer>
 
     <script>
@@ -120,14 +137,12 @@
                                 const content = JSON.parse(dataStr).choices[0].delta.content || "";
                                 if (content) fullText += content;
 
-                                // Trigger NOUN detection only once
                                 if (!nounFound && fullText.includes('\n')) {
                                     const match = fullText.match(/NOUN:\s*([a-zA-Z\-]+)/i);
                                     if (match && match[1]) {
                                         const noun = match[1].toLowerCase().trim();
                                         const imgUrl = `https://loremflickr.com/400/400/${noun},gothic/all?lock=${seed}`;
                                         
-                                        // Show the container immediately to prevent the flicker
                                         document.getElementById('polaroid-wrapper').style.display = 'block';
                                         document.getElementById('polaroid-wrapper').style.opacity = '1';
                                         
@@ -140,7 +155,6 @@
                                     }
                                 }
 
-                                // Only render text once the noun-line has been found and removed
                                 if (nounFound) {
                                     if (document.getElementById('response-counsel').innerText === "Reading...") {
                                         document.getElementById('response-counsel').innerText = "";
