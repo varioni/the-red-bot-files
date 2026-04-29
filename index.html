@@ -14,7 +14,6 @@
         .logo-svg { width: 40px; fill: var(--blood); margin-bottom: 8px; }
         h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.2rem; text-transform: uppercase; margin: 0; letter-spacing: 2px; color: var(--blood); }
         
-        /* Navigation Styles: Red for Active, Grey for Link */
         .nav-container { margin-top: 20px; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: center; gap: 15px; font-style: italic; color: var(--nav-grey); }
         .nav-active { color: var(--blood); text-decoration: none; font-weight: 600; }
         .nav-link { color: var(--nav-grey); text-decoration: none; }
@@ -31,7 +30,6 @@
         #response-question { font-weight: 800; color: var(--blood); font-size: 1.6rem; margin-bottom: 10px; text-align: center; line-height: 1.3; }
         .issue-subtitle { text-transform: uppercase; letter-spacing: 3px; font-size: 0.75rem; color: var(--blood); text-align: center; margin-bottom: 40px; font-weight: 600; opacity: 0.8; }
         
-        /* Elvis Layout: Side-by-Side */
         .response-body { display: flex; flex-direction: row; align-items: flex-start; gap: 60px; margin-top: 40px; }
         .polaroid-container { flex: 0 0 380px; display: none; opacity: 0; transition: opacity 1s ease; }
         .polaroid-frame { background: white; padding: 15px 15px 60px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transform: rotate(-2deg); height: fit-content; border: 1px solid #E5E1D8; }
@@ -53,7 +51,7 @@
 </head>
 <body>
     <div class="header">
-        <svg class="logo-svg" viewBox="0 0 24 24"><path d="M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z"/></svg>
+        <svg class="logo-svg" viewBox="0 0 24 24"><path d="M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z'/%3E%3C/svg%3E">
         <h1>The Red Bot Files</h1>
     </div>
     
@@ -113,12 +111,8 @@
             
             try {
                 const response = await fetch('/api/chat', { method: 'POST', body: JSON.stringify({ question: qText }) });
-                
-                // DIAGNOSTIC: Capturing headers
                 shareId = response.headers.get("x-share-id");
                 const seed = response.headers.get("x-seed");
-                console.log("DIAGNOSTIC: Share ID:", shareId);
-                console.log("DIAGNOSTIC: Seed:", seed);
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
@@ -141,26 +135,19 @@
                                 const content = parsedData.choices[0].delta.content || "";
                                 if (content) fullText += content;
 
-                                // DIAGNOSTIC: Pattern matching for NOUN
                                 if (!nounFound && fullText.includes('\n')) {
                                     const match = fullText.match(/NOUN:\s*([a-zA-Z\-]+)/i);
                                     if (match && match[1]) {
                                         const noun = match[1].toLowerCase().trim();
-                                        console.log("DIAGNOSTIC: Noun Found:", noun);
+                                        // Fix: Removing '/all' to avoid LoremFlicker 500 errors
+                                        const imgUrl = `https://loremflickr.com/400/400/${noun},gothic?lock=${seed}`;
                                         
-                                        const imgUrl = `https://loremflickr.com/400/400/${noun},gothic/all?lock=${seed}`;
-                                        console.log("DIAGNOSTIC: Fetching Image URL:", imgUrl);
-
                                         document.getElementById('polaroid-wrapper').style.display = 'block';
                                         document.getElementById('polaroid-wrapper').style.opacity = '1';
                                         
                                         const img = new Image();
                                         img.onload = () => {
-                                            console.log("DIAGNOSTIC: Image Load Success");
                                             document.getElementById('polaroid-frame').innerHTML = `<img src="${imgUrl}">`;
-                                        };
-                                        img.onerror = () => {
-                                            console.error("DIAGNOSTIC: Image Load Failed");
                                         };
                                         img.src = imgUrl;
                                         nounFound = true;
@@ -180,7 +167,6 @@
                 }
                 document.getElementById('action-footer').style.display = 'block';
             } catch (err) { 
-                console.error("DIAGNOSTIC: Fetch Error:", err);
                 document.getElementById('response-counsel').innerText = "Error: " + err.message; 
             }
         }
