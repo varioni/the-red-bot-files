@@ -10,8 +10,8 @@ export default async function handler(req, res) {
       headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         "find": { 
-          "filter": { "noun": tag.toLowerCase().trim() },
-          "options": { "limit": 100 } 
+          // Direct database filter for the specific noun
+          "filter": { "noun": tag.toLowerCase().trim() }
         } 
       })
     });
