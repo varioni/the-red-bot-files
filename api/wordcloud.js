@@ -7,7 +7,10 @@ export default async function handler(req, res) {
       headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         "find": { 
-          "options": { "limit": 1000 } 
+          "filter": {}, 
+          "options": { 
+            "limit": 1000
+          }
         } 
       })
     });
@@ -31,7 +34,7 @@ export default async function handler(req, res) {
         size: 24 + (counts[word] * 15) 
       }))
       .sort((a, b) => b.size - a.size)
-      .slice(0, 80); 
+      .slice(0, 100); // Increased to 100 for a denser cloud
 
     res.status(200).json(cloudData);
   } catch (err) {
