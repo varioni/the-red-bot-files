@@ -9,13 +9,17 @@ export default async function handler(req, res) {
     const astraRes = await fetch(astraUrl, {
       method: 'POST',
       headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ "find": { "options": { "limit": 1000 } } }) 
+      body: JSON.stringify({ 
+        "find": { 
+          "options": { "limit": 1000 } 
+        } 
+      })
     });
 
     const astraData = await astraRes.json();
     const documents = astraData?.data?.documents || [];
     
-    // CHANGE: Match the tag against the saved NOUN field
+    // Match the clicked tag against the saved NOUN field
     const matches = documents.filter(doc => {
         const savedNoun = (doc.noun || "").toLowerCase().trim();
         return savedNoun === tag.toLowerCase().trim();
