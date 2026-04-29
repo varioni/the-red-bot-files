@@ -7,24 +7,22 @@ export default async function handler(req, res) {
       headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         "find": { 
-          // ONLY pull logs where the 'noun' field actually exists and isn't null
-          "filter": { "noun": { "$exists": true } },
-          "options": { "limit": 1000 }
+          // Filter to only include documents where a noun exists
+          "filter": { "noun": { "$exists": true, "$ne": "" } },
+          "options": { 
+            "limit": 1000 
+          }
         } 
       })
     });
 
     const astraData = await astraRes.json();
     const documents = astraData?.data?.documents || [];
+    
     const counts = {};
-
     documents.forEach(doc => {
-      if (doc.noun) {
-        const noun = doc.noun.toLowerCase().trim();
-        if (noun.length > 2) {
-          counts[noun] = (counts[noun] || 0) + 1;
-        }
-      }
+      const noun = doc.noun.toLowerCase().trim();
+      counts[noun] = (counts[noun] || 0) + 1;
     });
 
     const cloudData = Object.keys(counts)
