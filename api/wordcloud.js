@@ -7,10 +7,9 @@ export default async function handler(req, res) {
       headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         "find": { 
-          "filter": {}, 
-          "options": { 
-            "limit": 1000
-          }
+          // ONLY pull logs where the 'noun' field actually exists and isn't null
+          "filter": { "noun": { "$exists": true } },
+          "options": { "limit": 1000 }
         } 
       })
     });
@@ -33,8 +32,7 @@ export default async function handler(req, res) {
         text: word,
         size: 24 + (counts[word] * 15) 
       }))
-      .sort((a, b) => b.size - a.size)
-      .slice(0, 100); // Increased to 100 for a denser cloud
+      .sort((a, b) => b.size - a.size);
 
     res.status(200).json(cloudData);
   } catch (err) {
