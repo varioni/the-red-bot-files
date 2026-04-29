@@ -11,6 +11,7 @@ export default async function handler(req, res) {
       headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         "find": { 
+          "filter": {},
           "options": { "limit": 1000 } 
         } 
       })
@@ -19,7 +20,7 @@ export default async function handler(req, res) {
     const astraData = await astraRes.json();
     const documents = astraData?.data?.documents || [];
     
-    // Match the clicked tag against the saved NOUN field
+    // Exact match against the Curator's labeled noun
     const matches = documents.filter(doc => {
         const savedNoun = (doc.noun || "").toLowerCase().trim();
         return savedNoun === tag.toLowerCase().trim();
