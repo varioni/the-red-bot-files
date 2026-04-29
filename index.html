@@ -9,15 +9,14 @@
     <style>
         :root { --paper: #F4F1EA; --ink: #1a1a1a; --blood: #8B1D20; --nav-grey: #7F7A6D; --shadow: #D9D4C7; }
         body { background-color: var(--paper); color: var(--ink); font-family: 'EB Garamond', serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 40px 20px; min-height: 100vh; }
-        
         .header { text-align: center; margin-bottom: 5px; }
         .logo-svg { width: 40px; fill: var(--blood); margin-bottom: 8px; }
         h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.2rem; text-transform: uppercase; margin: 0; letter-spacing: 2px; color: var(--blood); }
         
-        /* Restored Menu Colors & Styling */
+        /* Updated Navigation Styles */
         .nav-container { margin-top: 20px; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: center; gap: 15px; font-style: italic; color: var(--nav-grey); }
-        .nav-active { color: var(--blood); text-decoration: none; }
-        .nav-link { color: var(--nav-grey); text-decoration: none; font-weight: 600; }
+        .nav-active { color: var(--blood); text-decoration: none; font-weight: 600; }
+        .nav-link { color: var(--nav-grey); text-decoration: none; }
         
         .divider { width: 100%; max-width: 1000px; border-bottom: 1px solid var(--shadow); margin: 25px 0 40px 0; }
         
@@ -39,10 +38,8 @@
         #response-counsel { flex: 1; font-size: 1.25rem; line-height: 1.8; white-space: pre-wrap; color: var(--ink); text-align: left; }
         .action-footer { text-align: center; margin: 80px 0; width: 100%; display: none; }
 
-        /* Restored Footer Styles */
-        footer { margin-top: auto; text-align: center; font-size: 0.85rem; color: var(--nav-grey); border-top: 1px solid var(--shadow); padding: 50px 0; font-style: italic; width: 100%; max-width: 900px; line-height: 1.6; }
-        footer a { color: var(--nav-grey); text-decoration: underline; }
-        .attribution { color: var(--blood); display: block; margin-top: 15px; font-style: italic; font-weight: 500; }
+        footer { margin-top: auto; text-align: center; font-size: 0.85rem; color: #A9A497; border-top: 1px solid var(--shadow); padding: 50px 0; font-style: italic; width: 100%; max-width: 900px; line-height: 1.6; }
+        .attribution { color: var(--blood); display: block; margin-top: 15px; font-weight: 500; }
         .attribution a { color: var(--blood); text-decoration: underline; }
 
         @media (max-width: 850px) {
@@ -57,7 +54,7 @@
         <h1>The Red Bot Files</h1>
     </div>
     
-    <!-- Restored Navigation Labels & Colors -->
+    <!-- Updated Navigation Labels & Classes -->
     <nav class="nav-container">
         <a href="index.html" class="nav-active">ASK ME ANYTHING</a> 
         <span>/</span> 
@@ -86,9 +83,9 @@
         </div>
     </div>
 
-    <!-- Restored Original Footer Wording -->
+    <!-- Restored Original Longer Footer Text -->
     <footer>
-        This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for <a href="https://www.theredhandfiles.com/" target="_blank">The Red Hand Files</a>.
+        This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for <a href="https://www.theredhandfiles.com/" target="_blank" style="color: #A9A497;">The Red Hand Files</a>.
         <span class="attribution">Made with ❤ by <a href="https://github.com/varioni" target="_blank">varioni</a></span>
     </footer>
 
@@ -137,12 +134,14 @@
                                 const content = JSON.parse(dataStr).choices[0].delta.content || "";
                                 if (content) fullText += content;
 
+                                // Restoration: Trigger NOUN detection only once
                                 if (!nounFound && fullText.includes('\n')) {
                                     const match = fullText.match(/NOUN:\s*([a-zA-Z\-]+)/i);
                                     if (match && match[1]) {
                                         const noun = match[1].toLowerCase().trim();
                                         const imgUrl = `https://loremflickr.com/400/400/${noun},gothic/all?lock=${seed}`;
                                         
+                                        // Restoration: Show the container immediately
                                         document.getElementById('polaroid-wrapper').style.display = 'block';
                                         document.getElementById('polaroid-wrapper').style.opacity = '1';
                                         
@@ -155,6 +154,7 @@
                                     }
                                 }
 
+                                // Restoration: Only render text once noun is found/cleared
                                 if (nounFound) {
                                     if (document.getElementById('response-counsel').innerText === "Reading...") {
                                         document.getElementById('response-counsel').innerText = "";
