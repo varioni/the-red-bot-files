@@ -4,22 +4,22 @@ export default async function handler(req, res) {
   if (!tag) return res.status(400).json({ error: "No theme specified." });
 
   try {
-    const astraUrl = `${process.env.ASTRA_ENDPOINT}/api/json/v1/default_keyspace/logs`;
+    const astraUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/logs`;
     
     const astraRes = await fetch(astraUrl, {
       method: 'POST',
       headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ "find": { "options": { "limit": 300 } } })
+      body: JSON.stringify({ "find": { "options": { "limit": 1000 } } }) 
     });
 
     const astraData = await astraRes.json();
     const documents = astraData?.data?.documents || [];
     
-    // STRICT FILTER: Match the tag in the question
+    // CHANGE: Match the tag against the saved NOUN field
     const matches = documents.filter(doc => {
-        const question = (doc.question || "").toLowerCase();
-        return question.includes(tag.toLowerCase());
-    }).slice(0, 5); 
+        const savedNoun = (doc.noun || "").toLowerCase().trim();
+        return savedNoun === tag.toLowerCase().trim();
+    }); 
 
     res.status(200).json(matches);
   } catch (err) {
