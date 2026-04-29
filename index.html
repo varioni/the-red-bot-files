@@ -12,41 +12,28 @@
         .header { text-align: center; margin-bottom: 5px; }
         .logo-svg { width: 40px; fill: var(--blood); margin-bottom: 8px; }
         h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.2rem; text-transform: uppercase; margin: 0; letter-spacing: 2px; color: var(--blood); }
-        
-        /* Navigation Styles: Red for Active, Grey for Link */
         .nav-container { margin-top: 20px; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 500; display: flex; justify-content: center; gap: 15px; font-style: italic; color: var(--nav-grey); }
         .nav-active { color: var(--blood); text-decoration: none; font-weight: 600; }
         .nav-link { color: var(--nav-grey); text-decoration: none; }
-        
         .divider { width: 100%; max-width: 1000px; border-bottom: 1px solid var(--shadow); margin: 25px 0 40px 0; }
-        
         #input-container { width: 100%; max-width: 700px; text-align: center; }
         textarea { width: 100%; height: 120px; background: transparent; border: none; padding: 15px; font-family: 'EB Garamond', serif; font-size: 1.3rem; color: var(--ink); resize: none; box-sizing: border-box; outline: none; }
-        
         .btn-thin { background: transparent; color: var(--blood); border: 1px solid var(--blood); padding: 12px 35px; font-family: 'IM Fell DW Pica', serif; text-transform: uppercase; letter-spacing: 3px; font-size: 0.85rem; cursor: pointer; transition: all 0.3s; margin: 10px; }
         .btn-thin:hover { background: #E8E4DB; }
-
         #output-area { width: 100%; max-width: 1100px; display: none; }
         #response-question { font-weight: 800; color: var(--blood); font-size: 1.6rem; margin-bottom: 10px; text-align: center; line-height: 1.3; }
         .issue-subtitle { text-transform: uppercase; letter-spacing: 3px; font-size: 0.75rem; color: var(--blood); text-align: center; margin-bottom: 40px; font-weight: 600; opacity: 0.8; }
-        
         .response-body { display: flex; flex-direction: row; align-items: flex-start; gap: 60px; margin-top: 40px; }
         .polaroid-container { flex: 0 0 380px; display: none; opacity: 0; transition: opacity 1s ease; }
         .polaroid-frame { background: white; padding: 15px 15px 60px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transform: rotate(-2deg); height: fit-content; border: 1px solid #E5E1D8; }
         .polaroid-frame img { width: 100%; height: auto; filter: sepia(0.2) contrast(1.1); display: block; }
-        
         #response-counsel { flex: 1; font-size: 1.25rem; line-height: 1.8; white-space: pre-wrap; color: var(--ink); text-align: left; }
         .action-footer { text-align: center; margin: 80px 0; width: 100%; display: none; }
-
         footer { margin-top: auto; text-align: center; font-size: 0.85rem; color: #A9A497; border-top: 1px solid var(--shadow); padding: 50px 0; font-style: italic; width: 100%; max-width: 900px; line-height: 1.6; }
         footer a { color: #A9A497; text-decoration: underline; }
         .attribution { color: var(--blood); display: block; margin-top: 15px; font-weight: 500; }
         .attribution a { color: var(--blood); text-decoration: underline; }
-
-        @media (max-width: 850px) {
-            .response-body { flex-direction: column; align-items: center; }
-            .polaroid-container { width: 100%; max-width: 350px; margin-bottom: 40px; }
-        }
+        @media (max-width: 850px) { .response-body { flex-direction: column; align-items: center; } .polaroid-container { width: 100%; max-width: 350px; margin-bottom: 40px; } }
     </style>
 </head>
 <body>
@@ -54,20 +41,16 @@
         <svg class="logo-svg" viewBox="0 0 24 24"><path d="M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z"/></svg>
         <h1>The Red Bot Files</h1>
     </div>
-    
     <nav class="nav-container">
         <a href="index.html" class="nav-active">ASK ME ANYTHING</a> 
         <span>/</span> 
         <a href="cloud.html" class="nav-link">LOOK YONDER</a>
     </nav>
-
     <div class="divider"></div>
-
     <div id="input-container">
         <textarea id="user-input" placeholder="write your question here"></textarea><br>
         <button class="btn-thin" onclick="askQuestion()">Submit</button>
     </div>
-
     <div id="output-area">
         <div id="response-question"></div>
         <div class="issue-subtitle">ANONYMOUS, INTERNET</div>
@@ -82,15 +65,12 @@
             <button class="btn-thin" onclick="location.reload()">Ask Another Question</button>
         </div>
     </div>
-
     <footer>
         This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for <a href="https://www.theredhandfiles.com/" target="_blank">The Red Hand Files</a>.
         <span class="attribution">Made with ❤ by <a href="https://github.com/varioni" target="_blank">varioni</a></span>
     </footer>
-
     <script>
         let shareId = "";
-
         async function copyShare() {
             if (!shareId) return;
             await navigator.clipboard.writeText(`${window.location.origin}/share.html?id=${shareId}`);
@@ -98,38 +78,29 @@
             btn.innerText = "Link Copied!";
             setTimeout(() => { btn.innerText = "Share Inquiry"; }, 2000);
         }
-
         async function askQuestion() {
             const input = document.getElementById('user-input');
             const qText = input.value.trim();
             if (!qText) return;
-
             document.getElementById('input-container').style.display = 'none';
             document.getElementById('output-area').style.display = 'block';
             document.getElementById('response-question').innerText = qText;
             document.getElementById('response-counsel').innerText = "Reading...";
-            
             try {
                 const response = await fetch('/api/chat', { method: 'POST', body: JSON.stringify({ question: qText }) });
-                
-                // DIAGNOSTIC: Capturing headers
                 shareId = response.headers.get("x-share-id");
                 const seed = response.headers.get("x-seed");
-                console.log("DIAGNOSTIC: Share ID Header:", shareId);
-                console.log("DIAGNOSTIC: Seed Header:", seed);
-
+                console.log("DIAGNOSTIC: Share ID:", shareId);
+                console.log("DIAGNOSTIC: Seed:", seed);
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let fullText = "", nounFound = false, buffer = "";
-
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
-                    
                     buffer += decoder.decode(value, { stream: true });
                     const lines = buffer.split('\n');
                     buffer = lines.pop(); 
-                    
                     for (const line of lines) {
                         if (line.startsWith('data: ')) {
                             const dataStr = line.slice(6).trim();
@@ -138,34 +109,25 @@
                                 const parsedData = JSON.parse(dataStr);
                                 const content = parsedData.choices[0].delta.content || "";
                                 if (content) fullText += content;
-
-                                // DIAGNOSTIC: Searching for NOUN line
                                 if (!nounFound && fullText.includes('\n')) {
                                     const match = fullText.match(/NOUN:\s*([a-zA-Z\-]+)/i);
                                     if (match && match[1]) {
                                         const noun = match[1].toLowerCase().trim();
-                                        console.log("DIAGNOSTIC: Noun Parsed:", noun);
-                                        
-                                        // Simplified URL to bypass LoremFlicker 500 errors
+                                        console.log("DIAGNOSTIC: Noun Found:", noun);
                                         const imgUrl = `https://loremflickr.com/400/400/${noun},gothic?lock=${seed}`;
-                                        console.log("DIAGNOSTIC: Final Image URL:", imgUrl);
-
+                                        console.log("DIAGNOSTIC: Image URL:", imgUrl);
                                         document.getElementById('polaroid-wrapper').style.display = 'block';
                                         document.getElementById('polaroid-wrapper').style.opacity = '1';
-                                        
                                         const img = new Image();
                                         img.onload = () => {
                                             console.log("DIAGNOSTIC: Image Displayed Successfully.");
                                             document.getElementById('polaroid-frame').innerHTML = `<img src="${imgUrl}">`;
                                         };
-                                        img.onerror = () => {
-                                            console.error("DIAGNOSTIC: Image Load Failed (Check Console for 500/404)");
-                                        };
+                                        img.onerror = () => { console.error("DIAGNOSTIC: Image Load Failed."); };
                                         img.src = imgUrl;
                                         nounFound = true;
                                     }
                                 }
-
                                 if (nounFound) {
                                     if (document.getElementById('response-counsel').innerText === "Reading...") {
                                         document.getElementById('response-counsel').innerText = "";
@@ -179,7 +141,7 @@
                 }
                 document.getElementById('action-footer').style.display = 'block';
             } catch (err) { 
-                console.error("DIAGNOSTIC: Fetch/Stream Error:", err);
+                console.error("DIAGNOSTIC: Stream Error:", err);
                 document.getElementById('response-counsel').innerText = "Error: " + err.message; 
             }
         }
