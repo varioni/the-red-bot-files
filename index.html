@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Red Bot Files | An Artificial Inquiry</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238B1D20'%3E%3Cpath d='M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z'/%3E%3C/svg%3E">
-    <!-- Added Caveat for the handwriting font -->
-    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Caveat:wght@400..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Permanent+Marker&display=swap" rel="stylesheet">
     <style>
         :root { --paper: #F4F1EA; --ink: #1a1a1a; --blood: #8B1D20; --nav-grey: #7F7A6D; --shadow: #D9D4C7; }
         body { background-color: var(--paper); color: var(--ink); font-family: 'EB Garamond', serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 40px 20px; min-height: 100vh; }
@@ -27,10 +26,10 @@
         .response-body { display: flex; flex-direction: row; align-items: flex-start; gap: 60px; margin-top: 40px; }
         .polaroid-container { flex: 0 0 380px; display: none; opacity: 0; transition: opacity 1s ease; }
         
-        /* Polaroid Styling with Handwriting Space */
-        .polaroid-frame { background: white; padding: 15px 15px 15px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transform: rotate(-2deg); height: fit-content; border: 1px solid #E5E1D8; }
+        .polaroid-frame { background: white; padding: 15px 15px 10px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transform: rotate(-2deg); height: fit-content; border: 1px solid #E5E1D8; }
         .polaroid-frame img { width: 100%; height: auto; filter: sepia(0.2) contrast(1.1); display: block; }
-        .polaroid-caption { font-family: 'Caveat', cursive; font-size: 1.8rem; color: #333; text-align: center; margin-top: 20px; padding-bottom: 10px; min-height: 1.5em; }
+        /* Messier, bigger handwriting scribble */
+        .polaroid-caption { font-family: 'Permanent Marker', cursive; font-size: 2.2rem; color: #222; text-align: center; margin-top: 15px; padding-bottom: 15px; transform: rotate(-1deg) translateX(5px); opacity: 0.9; }
         
         #response-counsel { flex: 1; font-size: 1.25rem; line-height: 1.8; white-space: pre-wrap; color: var(--ink); text-align: left; }
         .action-footer { text-align: center; margin: 80px 0; width: 100%; display: none; }
@@ -98,8 +97,6 @@
                 const response = await fetch('/api/chat', { method: 'POST', body: JSON.stringify({ question: qText }) });
                 shareId = response.headers.get("x-share-id");
                 const seed = response.headers.get("x-seed");
-                console.log("DIAGNOSTIC: Share ID:", shareId);
-                console.log("DIAGNOSTIC: Seed:", seed);
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let fullText = "", nounFound = false, buffer = "";
@@ -121,21 +118,14 @@
                                     const match = fullText.match(/NOUN:\s*([a-zA-Z\-]+)/i);
                                     if (match && match[1]) {
                                         const noun = match[1].toLowerCase().trim();
-                                        console.log("DIAGNOSTIC: Noun Found:", noun);
                                         const imgUrl = `https://loremflickr.com/400/400/${noun},art?lock=${seed}`;
-                                        console.log("DIAGNOSTIC: Image URL:", imgUrl);
-                                        
-                                        // Update the Noun text under the image
                                         document.getElementById('polaroid-noun').innerText = noun;
-                                        
                                         document.getElementById('polaroid-wrapper').style.display = 'block';
                                         document.getElementById('polaroid-wrapper').style.opacity = '1';
                                         const img = new Image();
                                         img.onload = () => {
-                                            console.log("DIAGNOSTIC: Image Displayed Successfully.");
                                             document.getElementById('polaroid-img-holder').innerHTML = `<img src="${imgUrl}">`;
                                         };
-                                        img.onerror = () => { console.error("DIAGNOSTIC: Image Load Failed."); };
                                         img.src = imgUrl;
                                         nounFound = true;
                                     }
@@ -153,7 +143,6 @@
                 }
                 document.getElementById('action-footer').style.display = 'block';
             } catch (err) { 
-                console.error("DIAGNOSTIC: Stream Error:", err);
                 document.getElementById('response-counsel').innerText = "Error: " + err.message; 
             }
         }
