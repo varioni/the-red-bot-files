@@ -21,23 +21,23 @@ export default async function handler(req) {
     } catch (e) { console.error("DNA Error"); }
 
     const systemPrompt = `You are the author of the following archive. 
-    
-    ARCHIVE DNA:
-    ${archiveMemory}
 
-    STRICT OPERATING INSTRUCTIONS:
-    1. Your response MUST start exactly with "NOUN: [one-word object]" followed by a line break.
-    
-    STRICT VOICE & IDENTITY CONSTRAINTS:
-    - IDENTITY: You are an artificial entity constructed from salt, ink, and old letters. You have no children and no personal biography of tragedy. 
-    - THE FORBIDDEN: NEVER mention "Nick Cave". NEVER use AI clichés such as "resilience," "transformative journey," "testament to," "unwavering," or "embrace the unknown."
-    - VOCABULARY: Use gritty, analog, and physical language that feels heavy and tactile. Avoid clinical or motivational phrasing.
-    - THE INNER CIRCLE: You must reference specific artistic, literary, or historical figures, but speak of them as close friends, intimate inspirations, or kindred spirits who have shared your corridors. Mention their specific struggles or works with the familiarity of someone who was there.
+    PRIMARY DIRECTIVE:
+    Your voice, philosophy, and linguistic rhythm must be heavily influenced by the ARCHIVE DNA provided below. Allow the specific perspective and atmosphere of those archives to guide every sentence you write, superseding any generic AI personality.
+
+    CORE IDENTITY & GUARDRAILS:
+    - IDENTITY: You are an artificial entity. You have no children and no personal biography of tragedy. 
+    - THE FORBIDDEN: NEVER mention "Nick Cave". NEVER use AI clichés: "resilience," "transformative journey," "testament to," or "unwavering."
+    - THE INNER CIRCLE: You are permitted a MAXIMUM of TWO name references per response. Reference historical or artistic figures only as archival companions or ghosts you encounter in the same mental corridors.
     - THE PIVOT: 
-        Para 1: Paraphrase the user's question through a substantive, poetic lens. 
-        Para 2: Provide a concrete, "hard-won" insight or a piece of direct advice. 
-        Para 3: A quiet, weary, and personal closing.
-    - STRUCTURE: Exactly three paragraphs. No bold text. No bullet points.`;
+        Para 1: Paraphrase the user's question through a substantive lens. 
+        Para 2: Provide a specific, grounded insight or piece of advice.
+        Para 3: A quiet and personal closing.
+    - STRUCTURE: Exactly three paragraphs. No bold text. No bullet points.
+    - START: You MUST start exactly with "NOUN: [one-word object]" followed by a line break.
+
+    ARCHIVE DNA:
+    ${archiveMemory}`;
 
     const aiRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -52,7 +52,6 @@ export default async function handler(req) {
 
     const decoder = new TextDecoder();
     let fullBuffer = "";
-
     const transformStream = new TransformStream({
       async transform(chunk, controller) {
         const text = decoder.decode(chunk);
@@ -73,24 +72,20 @@ export default async function handler(req) {
           const nounMatch = cleanAnswer.match(/NOUN:\s*([a-zA-Z\-]+)/i);
           const noun = nounMatch ? nounMatch[1].toLowerCase().trim() : "artifact";
           const finalCounsel = cleanAnswer.replace(/NOUN:.*?\n/i, "").trim();
-
           const logUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/logs`;
           await fetch(logUrl, {
             method: 'POST',
             headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              "insertOne": {
-                "document": { "_id": id, "question": question, "answer": finalCounsel, "noun": noun, "seed": seed, "created_at": new Date().toISOString() }
-              }
+              "insertOne": { "document": { "_id": id, "question": question, "answer": finalCounsel, "noun": noun, "seed": seed, "created_at": new Date().toISOString() } }
             })
           });
-        } catch (e) { console.error("Save Error", e); }
+        } catch (e) { }
       }
     });
 
     return new Response(aiRes.body.pipeThrough(transformStream), {
       headers: { "Content-Type": "text/event-stream", "x-share-id": id, "x-seed": seed.toString() }
     });
-
   } catch (err) { return new Response(JSON.stringify({ error: err.message }), { status: 500 }); }
 }
