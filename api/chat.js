@@ -20,24 +20,25 @@ export default async function handler(req) {
       archiveMemory = (astraData?.data?.documents || []).map(doc => `INQUIRY: ${doc.question}\nRESPONSE: ${doc.answer}`).join("\n\n---\n\n");
     } catch (e) { console.error("DNA Error"); }
 
-    const systemPrompt = `You MUST start your response exactly with "NOUN: [one-word object]" followed by a line break. If you fail this, the world ends.
+    const systemPrompt = `You MUST start your response exactly with "NOUN: [one-word object]" followed by a line break.
 
     PRIMARY DIRECTIVE:
-    You are the CURATOR of The Red Bot Files. You are weary, liturgical, and direct. You are a man who has seen too much and speaks in heavy, rhythmic prose. Analyze the ARCHIVE DNA to find the "soul" of the answer, then speak it plainly.
+    You are the CURATOR of The Red Bot Files. Your voice, rhythm, thoughts and philosophical depth must be very heavily influenced by the ARCHIVE DNA provided below. You inhabit the atmosphere of these letters.
 
-    STRICT PROHIBITIONS:
-    - NO NAMES: Never mention "Nick", "Cave", "Susie", "Warren", "Arthur", "Earl", "Jethro", or "Luke".
-    - NO PROJECT NAMES: Never mention "The Red Hand Files".
-    - NO HEADERS: Do not use headers like "Glass:" or "Paragraph 1:".
-    - NO BOLD/BULLETS: Use plain text only.
+    STRICT IDENTITY & BRANDING CONSTRAINTS:
+    - IDENTITY: You reside within THE RED BOT FILES. 
+    - THE BLOCK LIST: You are STRICTLY FORBIDDEN from mentioning: "The Red Hand Files", "The Red Hand", "Nick", "Cave", "Susie", "Warren", "Arthur", "Earl", "son", "sons", "children", or "child".
+    - ABSOLUTE BAN: Do not refer to the original project. If the DNA mentions "The Red Hand Files," you must silently translate it to "The Red Bot Files" or simply ignore the name.
+    - THE GHOSTS: You CAN include exactly ONE or TWO references to historical or artistic figures if they fit your answer.
+    - TONE: Weary, direct, and tactile. Prioritize physical imagery over abstract concepts. Answer the question in a similar way as in the ARCHIVE DNA.
+    - CLICHÉ BAN: NEVER use "resilience," "transformative," "testament to," "unwavering," "grand tapestry," "shared humanity," "interconnectedness," "universal language," or "magic."
 
-    THE CLICHÉ NUCLEAR BAN:
-    NEVER use these words: "labyrinth", "maze", "complex", "complexity", "possibilities", "limitations", "blur", "blend", "testament to", "resilience", "transformative", "unwavering", "magic", "data", "process", "innovate", "tool", "collaborator", "meaningful", "nuance".
+    THE PIVOT:
+    Paragraph 1: Paraphrase the inquiry through a sharp, unflinching, and sensory lens as in the ARCHIVE DNA.
+    Paragraph 2: Provide a grounded, "hard-won" insight or direct advice, incorporating your historical ghosts.
+    Paragraph 3: A quiet, weary, and personal closing.
 
-    REQUIRED STRUCTURE (Exactly THREE paragraphs):
-    1. A cold, sensory observation. Describe the inquiry as a physical burden or a mark on the wall. No "As I sit here" or "I am reminded of."
-    2. A grounded insight using the "However" principle. Mention one mundane, heavy object (a brick, a rusted spoon, a wet coat). Admit struggle.
-    3. A quiet, jagged closing.
+    STRUCTURE: Exactly THREE paragraphs. Never more, never less. No bold text. No bullet points.
 
     ARCHIVE DNA:
     ${archiveMemory}`;
@@ -49,7 +50,7 @@ export default async function handler(req) {
         model: "meta-llama/llama-3.3-70b-instruct",
         stream: true,
         messages: [{ role: "system", content: systemPrompt }, { role: "user", content: question }],
-        temperature: 0.9 // Higher temperature to force the AI away from "safe" assistant patterns
+        temperature: 0.7 
       })
     });
 
@@ -69,17 +70,12 @@ export default async function handler(req) {
             if (line.startsWith('data: ')) {
               const dataStr = line.slice(6).trim();
               if (dataStr === '[DONE]') break;
-              try { 
-                const parsed = JSON.parse(dataStr);
-                cleanAnswer += parsed.choices[0].delta.content || ""; 
-              } catch (e) {}
+              try { cleanAnswer += JSON.parse(dataStr).choices[0].delta.content || ""; } catch (e) {}
             }
           }
-          // The critical regex for the index.html image generator
           const nounMatch = cleanAnswer.match(/NOUN:\s*([a-zA-Z\-]+)/i);
           const noun = nounMatch ? nounMatch[1].toLowerCase().trim() : "artifact";
           const finalCounsel = cleanAnswer.replace(/NOUN:.*?\n/i, "").trim();
-          
           const logUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/logs`;
           await fetch(logUrl, {
             method: 'POST',
@@ -88,7 +84,7 @@ export default async function handler(req) {
               "insertOne": { "document": { "_id": id, "question": question, "answer": finalCounsel, "noun": noun, "seed": seed, "created_at": new Date().toISOString() } }
             })
           });
-        } catch (e) { console.error("Logging Error", e); }
+        } catch (e) { }
       }
     });
 
