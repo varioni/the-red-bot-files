@@ -1,23 +1,27 @@
 export default async function handler(req, res) {
   try {
     const targetUrl = "https://www.theredhandfiles.com/";
-    
-    // 1. Fetch homepage with browser-like headers
     const response = await fetch(targetUrl, {
       headers: { 
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-        'Accept': 'text/html'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
       }
     });
     const html = await response.text();
 
-    // 2. Identify Potential Post Links
+    // 1. Better Link Extraction
     const rawLinks = [...html.matchAll(/href=["']([^"']+)["']/g)].map(m => m[1]);
-    const blacklist = ['about', 'privacy', 'contact', 'category', 'tag', 'terms', 'archive', 'shop', 'wp-', '?', '#'];
+    
+    // A more aggressive blacklist to ignore the "noise" seen in your last run
+    const blacklist = [
+      'google-analytics', 'google.com', 'facebook.com', 'twitter.com', 'instagram.com',
+      'page/', '/feed/', 'wp-content', 'wp-includes', 'shop', 'contact', 'privacy', 
+      'about', 'terms', 'archive', '?', '#', 'category/', 'tag/'
+    ];
     
     const latestLinks = rawLinks
       .filter(link => {
-        const isInternal = link.startsWith('/') || link.includes('theredhandfiles.com');
+        // Must be an internal path and NOT on the blacklist
+        const isInternal = (link.startsWith('/') && !link.startsWith('//')) || link.includes('theredhandfiles.com');
         const isBlacklisted = blacklist.some(word => link.toLowerCase().includes(word));
         const isHome = link === '/' || link === 'https://www.theredhandfiles.com/';
         return isInternal && !isBlacklisted && !isHome;
@@ -28,11 +32,10 @@ export default async function handler(req, res) {
 
     let addedCount = 0;
     let history = [];
-    // Correctly targeting the 'archives' collection for the AI's persona
     const astraUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/archives`;
 
     for (const link of uniqueLinks) {
-      // 3. Duplicate Check in 'archives'
+      // 2. Duplicate Check
       const checkRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
@@ -41,28 +44,26 @@ export default async function handler(req, res) {
       const checkData = await checkRes.json();
 
       if (checkData?.data?.documents?.length === 0) {
-        // 4. Fetch the post content
+        // 3. Fetch the Letter
         const issuePage = await fetch(link, { headers: { 'User-Agent': 'Mozilla/5.0' } });
         const issueHtml = await issuePage.text();
         
-        // Brute force content extraction
-        const contentMatch = issueHtml.match(/<article[^>]*>([\s\S]*?)<\/article>/i) || 
+        // 4. Targeted Content Extraction
+        // Nick Cave's letters are usually inside a div with class "post-content" or "entry-content"
+        const contentMatch = issueHtml.match(/<div class="[^"]*post-content[^"]*">([\s\S]*?)<\/div>/i) || 
                              issueHtml.match(/<div class="[^"]*entry-content[^"]*">([\s\S]*?)<\/div>/i) ||
-                             issueHtml.match(/<main[^>]*>([\s\S]*?)<\/main>/i);
+                             issueHtml.match(/<article[^>]*>([\s\S]*?)<\/article>/i);
         
         if (contentMatch) {
           let cleanBody = contentMatch[1]
             .replace(/<script[\s\S]*?<\/script>/gi, '') 
             .replace(/<style[\s\S]*?<\/style>/gi, '')   
-            .replace(/<header[\s\S]*?<\/header>/gi, '') 
-            .replace(/<footer[\s\S]*?<\/footer>/gi, '') 
-            .replace(/<[^>]*>?/gm, '')                  
+            .replace(/<[^>]*>?/gm, '') // Strip all remaining tags
             .replace(/&nbsp;/g, ' ')
-            .replace(/\s+/g, ' ')                       
+            .replace(/\s+/g, ' ')
             .trim();
 
-          if (cleanBody.length > 300) {
-            // 5. Store in 'archives'
+          if (cleanBody.length > 500) { // Letters are usually long; this avoids junk
             await fetch(astraUrl, {
               method: 'POST',
               headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
@@ -80,7 +81,7 @@ export default async function handler(req, res) {
             addedCount++;
             history.push(`SUCCESS: ${link}`);
           } else {
-            history.push(`FAILED: Content too short for ${link}`);
+            history.push(`REJECTED: Content too short (${cleanBody.length} chars) at ${link}`);
           }
         } else {
           history.push(`FAILED: No content container found for ${link}`);
