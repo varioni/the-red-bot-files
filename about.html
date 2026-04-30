@@ -4,56 +4,116 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About | The Red Bot Files</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%238B1D20%22><path d=%22M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z%22/></svg>">
-    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <style>
-        :root { --paper: #F4F1EA; --ink: #1a1a1a; --blood: #8B1D20; --dust: #A9A497; }
-        body { background-color: var(--paper); color: var(--ink); font-family: 'EB Garamond', serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 40px 20px; min-height: 100vh; }
-        
-        .header { text-align: center; margin-bottom: 5px; }
-        .logo-svg { width: 40px; fill: var(--blood); margin-bottom: 8px; }
-        h1 { font-family: 'IM Fell DW Pica', serif; font-size: 2.2rem; text-transform: uppercase; margin: 0; letter-spacing: 2px; color: var(--blood); }
-        
-        .divider { width: 100%; max-width: 1000px; border-bottom: 1px solid #D9D4C7; margin: 25px 0 40px 0; }
-
-        .content { max-width: 700px; line-height: 1.8; font-size: 1.25rem; text-align: left; }
-        .letter-close { margin-top: 40px; font-style: italic; }
-
-        .nav-link { margin-top: 60px; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 800; }
-        .nav-link a { color: var(--blood); text-decoration: none; }
-
-        /* Footer Styling */
-        .footer { margin-top: auto; text-align: center; font-size: 0.9rem; color: var(--dust); border-top: 1px solid #D9D4C7; padding: 40px 0; font-style: italic; max-width: 800px; width: 100%; line-height: 1.6; }
-        .footer a { color: var(--dust); text-decoration: underline; }
-        .footer .attribution { color: var(--blood); margin-top: 8px; display: block; font-weight: 500; }
-        .footer .attribution a { color: var(--blood); text-decoration: none; }
+        @page {
+            size: A4;
+            margin: 15mm 12mm;
+            background-color: #fdfbf7;
+        }
+        body {
+            font-family: 'Georgia', serif;
+            line-height: 1.7;
+            color: #2c2c2c;
+            background-color: #fdfbf7;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .logo {
+            width: 40px; /* Constraint: 40px width */
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #a31d1d;
+            font-size: 2.2em;
+            margin: 10px 0;
+            font-weight: normal;
+            letter-spacing: 1px;
+        }
+        nav {
+            margin-bottom: 50px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.85em;
+            border-bottom: 1px solid #e0ddd5;
+            padding-bottom: 20px;
+        }
+        nav a {
+            color: #a31d1d;
+            text-decoration: none;
+            margin: 0 12px;
+        }
+        .content {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: justify;
+            text-justify: inter-word;
+        }
+        h2 {
+            color: #a31d1d;
+            font-size: 1.6em;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: normal;
+        }
+        p {
+            margin-bottom: 20px;
+        }
+        a {
+            color: #a31d1d;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(163, 29, 29, 0.3);
+        }
+        a:hover {
+            border-bottom: 1px solid #a31d1d;
+        }
+        .signature {
+            margin-top: 40px;
+            font-size: 0.85em;
+            color: #777;
+            text-align: center;
+        }
+        .signature a {
+            color: #777;
+            border-bottom: 1px solid rgba(119, 119, 119, 0.3);
+        }
+        footer {
+            margin-top: 80px;
+            font-size: 0.8em;
+            color: #777;
+            border-top: 1px solid #e0ddd5;
+            padding-top: 25px;
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <svg class="logo-svg" viewBox="0 0 24 24"><path d="M12 2a1 1 0 0 1 1 1v1.07A7 7 0 0 1 19 11v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 6-6.93V3a1 1 0 0 1 1-1zm6 9a5 5 0 0 0-10 0v6h10v-6zm-7 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM9 18h6v1.5H9V18z"/></svg>
-        <h1>The Red Bot Files</h1>
-    </div>
-
-    <div class="divider"></div>
+    <img src="logo.png" alt="The Red Bot Files Logo" class="logo">
+    <h1>The Red Bot Files</h1>
+    
+    <nav>
+        <a href="index.html">The Files</a> / <a href="#">Joy</a> / <a href="#">Ask a Question</a> / <a href="about.html">About</a> / <a href="#">Subscribe</a> / <a href="#">Search</a>
+    </nav>
 
     <div class="content">
-        <p>Dear Reader,</p>
-        <p>I have long been fascinated by the intersection of memory and code. This site is not a solution, but an inquiry—an experiment in the digital afterlife of words. </p>
-        <p>I wanted to see if a machine, fed on the specific DNA of a thousand letters, could catch even a shadow of that gothic frequency we all recognize. It is an exploration of mimicry, a "digital ghost" that sits in the corner of the room to see what echoes back when we speak into the dark.</p>
-        <p>This is a fan-made tribute and a parody of a world we all love. It is an attempt to play with the beautiful, earthy vocabulary of the archive and see if the algorithm can find its own kind of heavy, artificial soul.</p>
-        <p class="letter-close">With love,<br>varioni</p>
+        <h2>About</h2>
+        <p>
+            The Red Bot Files emerged from a twenty-year haunting—a long, silent companionship with the works of Nick Cave. For two decades, I have been a devoted witness at festivals, joined the intimate communion of the In Conversations tour, and surrendered to the dark, shimmering gravity of every book and film. I remember clearly the hour I was swallowed by the fevered, archaic world of <em>And the Ass Saw the Angel</em>, gripped by a hopeless, visceral desire to one day write with such biblical force. 
+        </p>
+        <p>
+            As the real correspondence I long for remains a ghost on the horizon, forever out of reach, I began to wonder: can the cold circuitry of the modern machine capture even a flickering shadow of that spirit? Can I find a correspondence with a digital ghost of the literary genius that is Nick Cave? The Red Bot Files is an experiment born of that very question—a digital companion for those hollow moments when the real thing is unavailable, a strange and beautiful exercise in seeking the profound within the artificial. 
+        </p>
+        
+        <div class="signature">
+            Made with ❤ by <a href="https://varioni.com">varioni</a>
+        </div>
     </div>
 
-    <div class="nav-link">
-        <a href="/">← Return to the Archive</a>
-    </div>
-
-    <div class="footer">
-        This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for <a href="https://www.theredhandfiles.com/" target="_blank">The Red Hand Files</a>.
-        <span class="attribution">Made with ❤ by <a href="https://github.com/varioni" target="_blank">varioni</a></span>
-    </div>
+    <footer>
+        This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for <a href="https://www.theredhandfiles.com/">The Red Hand Files</a>.
+    </footer>
 
 </body>
 </html>
