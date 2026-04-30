@@ -8,22 +8,21 @@ export default async function handler(req, res) {
     });
     const html = await response.text();
 
-    // 1. Better Link Extraction
     const rawLinks = [...html.matchAll(/href=["']([^"']+)["']/g)].map(m => m[1]);
     
-    // A more aggressive blacklist to ignore the "noise" seen in your last run
+    // Refined blacklist based on your latest diagnostic run
     const blacklist = [
-      'google-analytics', 'google.com', 'facebook.com', 'twitter.com', 'instagram.com',
-      'page/', '/feed/', 'wp-content', 'wp-includes', 'shop', 'contact', 'privacy', 
-      'about', 'terms', 'archive', '?', '#', 'category/', 'tag/'
+      'google-analytics', 'wp-json', 'ask-a-question', 'joy/', 'page/', '/feed/', 
+      'wp-content', 'wp-includes', 'shop', 'contact', 'privacy', 'about', 
+      'terms', 'archive', 'category/', 'tag/', '?', '#'
     ];
     
     const latestLinks = rawLinks
       .filter(link => {
-        // Must be an internal path and NOT on the blacklist
         const isInternal = (link.startsWith('/') && !link.startsWith('//')) || link.includes('theredhandfiles.com');
         const isBlacklisted = blacklist.some(word => link.toLowerCase().includes(word));
-        const isHome = link === '/' || link === 'https://www.theredhandfiles.com/';
+        // Strict homepage check to avoid re-scanning the root
+        const isHome = link === '/' || link === 'https://www.theredhandfiles.com' || link === 'https://www.theredhandfiles.com/';
         return isInternal && !isBlacklisted && !isHome;
       })
       .map(link => link.startsWith('/') ? `https://www.theredhandfiles.com${link}` : link);
@@ -35,7 +34,6 @@ export default async function handler(req, res) {
     const astraUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/archives`;
 
     for (const link of uniqueLinks) {
-      // 2. Duplicate Check
       const checkRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
@@ -44,26 +42,23 @@ export default async function handler(req, res) {
       const checkData = await checkRes.json();
 
       if (checkData?.data?.documents?.length === 0) {
-        // 3. Fetch the Letter
         const issuePage = await fetch(link, { headers: { 'User-Agent': 'Mozilla/5.0' } });
         const issueHtml = await issuePage.text();
         
-        // 4. Targeted Content Extraction
-        // Nick Cave's letters are usually inside a div with class "post-content" or "entry-content"
         const contentMatch = issueHtml.match(/<div class="[^"]*post-content[^"]*">([\s\S]*?)<\/div>/i) || 
-                             issueHtml.match(/<div class="[^"]*entry-content[^"]*">([\s\S]*?)<\/div>/i) ||
+                             issueHtml.match(/<div class="[^"]*entry-content[^!]*">([\s\S]*?)<\/div>/i) ||
                              issueHtml.match(/<article[^>]*>([\s\S]*?)<\/article>/i);
         
         if (contentMatch) {
           let cleanBody = contentMatch[1]
             .replace(/<script[\s\S]*?<\/script>/gi, '') 
             .replace(/<style[\s\S]*?<\/style>/gi, '')   
-            .replace(/<[^>]*>?/gm, '') // Strip all remaining tags
+            .replace(/<[^>]*>?/gm, '') 
             .replace(/&nbsp;/g, ' ')
             .replace(/\s+/g, ' ')
             .trim();
 
-          if (cleanBody.length > 500) { // Letters are usually long; this avoids junk
+          if (cleanBody.length > 500) {
             await fetch(astraUrl, {
               method: 'POST',
               headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
@@ -81,7 +76,7 @@ export default async function handler(req, res) {
             addedCount++;
             history.push(`SUCCESS: ${link}`);
           } else {
-            history.push(`REJECTED: Content too short (${cleanBody.length} chars) at ${link}`);
+            history.push(`REJECTED: Snippet too short (${cleanBody.length} chars) at ${link}`);
           }
         } else {
           history.push(`FAILED: No content container found for ${link}`);
