@@ -10,7 +10,6 @@ export default async function handler(req, res) {
 
     const rawLinks = [...html.matchAll(/href=["']([^"']+)["']/g)].map(m => m[1]);
     
-    // Refined blacklist based on your latest diagnostic run
     const blacklist = [
       'google-analytics', 'wp-json', 'ask-a-question', 'joy/', 'page/', '/feed/', 
       'wp-content', 'wp-includes', 'shop', 'contact', 'privacy', 'about', 
@@ -21,7 +20,6 @@ export default async function handler(req, res) {
       .filter(link => {
         const isInternal = (link.startsWith('/') && !link.startsWith('//')) || link.includes('theredhandfiles.com');
         const isBlacklisted = blacklist.some(word => link.toLowerCase().includes(word));
-        // Strict homepage check to avoid re-scanning the root
         const isHome = link === '/' || link === 'https://www.theredhandfiles.com' || link === 'https://www.theredhandfiles.com/';
         return isInternal && !isBlacklisted && !isHome;
       })
@@ -58,7 +56,8 @@ export default async function handler(req, res) {
             .replace(/\s+/g, ' ')
             .trim();
 
-          if (cleanBody.length > 500) {
+          // Lowered threshold to catch short letters/responses
+          if (cleanBody.length > 300) {
             await fetch(astraUrl, {
               method: 'POST',
               headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
@@ -76,7 +75,7 @@ export default async function handler(req, res) {
             addedCount++;
             history.push(`SUCCESS: ${link}`);
           } else {
-            history.push(`REJECTED: Snippet too short (${cleanBody.length} chars) at ${link}`);
+            history.push(`REJECTED: Content too short (${cleanBody.length} chars) at ${link}`);
           }
         } else {
           history.push(`FAILED: No content container found for ${link}`);
