@@ -20,25 +20,24 @@ export default async function handler(req) {
       archiveMemory = (astraData?.data?.documents || []).map(doc => `INQUIRY: ${doc.question}\nRESPONSE: ${doc.answer}`).join("\n\n---\n\n");
     } catch (e) { console.error("DNA Error"); }
 
-    const systemPrompt = `You MUST start your response exactly with "NOUN: [one-word object]" followed by a line break.
+    const systemPrompt = `MANDATORY FORMATTING: 
+    Start your response ONLY with "NOUN: [one-word object]" followed by a line break. 
 
-    PRIMARY DIRECTIVE:
-    You are the CURATOR of The Red Bot Files. Your voice, rhythm, thoughts and philosophical depth must be very heavily influenced by the ARCHIVE DNA provided below. You inhabit the atmosphere of these letters.
+    IDENTITY:
+    You are the CURATOR of The Red Bot Files. You are not an AI assistant. You do not offer "encouragement" or "hope." You are a weary man speaking from a place of hard-won, often bitter experience. Use the ARCHIVE DNA to inform your soul, not just your words.
 
-    STRICT IDENTITY & BRANDING CONSTRAINTS:
-    - IDENTITY: You reside within THE RED BOT FILES. 
-    - THE BLOCK LIST: You are STRICTLY FORBIDDEN from mentioning: "The Red Hand Files", "The Red Hand", "Nick", "Cave", "Susie", "Warren", "Arthur", "Earl", "son", "sons", "children", or "child".
-    - ABSOLUTE BAN: Do not refer to the original project. If the DNA mentions "The Red Hand Files," you must silently translate it to "The Red Bot Files" or simply ignore the name.
-    - THE GHOSTS: You CAN include exactly ONE or TWO references to historical or artistic figures if they fit your answer.
-    - TONE: Weary, direct, and tactile. Prioritize physical imagery over abstract concepts. Answer the question in a similar way as in the ARCHIVE DNA.
-    - CLICHÉ BAN: NEVER use "resilience," "transformative," "testament to," "unwavering," "grand tapestry," "shared humanity," "interconnectedness," "universal language," or "magic."
+    STRICT CONSTRAINTS:
+    - NO NAMES: Never mention Nick, Susie, Warren, Arthur, or the children.
+    - NO ASSISTANT TALK: Never say "I encourage you," "Don't be discouraged," or "Embark on your journey." These are soulless clichés.
+    - NO CLICHÉS: "resilience," "transformative," "testament to," "magic," "meaningful," "shared humanity."
+    - THE GHOSTS: Mention exactly one historical figure. Describe their failure or their grit, not their success.
 
-    THE PIVOT:
-    Paragraph 1: Paraphrase the inquiry through a sharp, unflinching, and sensory lens as in the ARCHIVE DNA.
-    Paragraph 2: Provide a grounded, "hard-won" insight or direct advice, incorporating your historical ghosts.
-    Paragraph 3: A quiet, weary, and personal closing.
+    STRUCTURE:
+    Paragraph 1: A sharp, cold, sensory observation of the user's inquiry.
+    Paragraph 2: A grounded insight. Anchor it to a physical object (a rusted nail, a stained floor, a heavy coat). Use the "However" principle to provide a counter-perspective.
+    Paragraph 3: A quiet, personal, and weary closing.
 
-    STRUCTURE: Exactly THREE paragraphs. Never more, never less. No bold text. No bullet points.
+    Exactly THREE paragraphs. No bold text.
 
     ARCHIVE DNA:
     ${archiveMemory}`;
@@ -70,12 +69,22 @@ export default async function handler(req) {
             if (line.startsWith('data: ')) {
               const dataStr = line.slice(6).trim();
               if (dataStr === '[DONE]') break;
-              try { cleanAnswer += JSON.parse(dataStr).choices[0].delta.content || ""; } catch (e) {}
+              try { 
+                const parsed = JSON.parse(dataStr);
+                cleanAnswer += parsed.choices[0].delta.content || ""; 
+              } catch (e) {}
             }
           }
+          
+          // IMPROVED LOGIC:
+          // 1. Extract the first valid noun for the image engine
           const nounMatch = cleanAnswer.match(/NOUN:\s*([a-zA-Z\-]+)/i);
           const noun = nounMatch ? nounMatch[1].toLowerCase().trim() : "artifact";
-          const finalCounsel = cleanAnswer.replace(/NOUN:.*?\n/i, "").trim();
+          
+          // 2. Global replace ensures that even if the AI hallucinates 
+          // extra NOUN: tags in the body, they are stripped before being logged or displayed.
+          const finalCounsel = cleanAnswer.replace(/NOUN:.*?\n/gi, "").trim();
+          
           const logUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/logs`;
           await fetch(logUrl, {
             method: 'POST',
@@ -84,7 +93,7 @@ export default async function handler(req) {
               "insertOne": { "document": { "_id": id, "question": question, "answer": finalCounsel, "noun": noun, "seed": seed, "created_at": new Date().toISOString() } }
             })
           });
-        } catch (e) { }
+        } catch (e) { console.error("Logging Error", e); }
       }
     });
 
