@@ -20,9 +20,30 @@
         h2 { font-size: 1.6rem; margin-top: 20px; font-style: italic; color: var(--nav-grey); text-align: center; font-weight: normal; }
         .subtitle { font-size: 1.1rem; font-style: italic; color: var(--nav-grey); margin: 5px 0 20px 0; text-align: center; font-weight: normal; opacity: 0.7; }
 
-        #cloud { max-width: 1000px; min-height: 400px; text-align: center; padding: 40px; line-height: 1.3; margin: 0 auto; flex-grow: 1; }
-        .word { transition: all 0.3s ease; cursor: pointer; display: inline-block; margin: 10px 20px; position: relative; }
-        .word:hover { color: #000 !important; transform: scale(1.05); z-index: 100; opacity: 1 !important; text-decoration: underline; }
+        /* Cloud Container Fixes */
+        #cloud { 
+            max-width: 900px; 
+            min-height: 500px; 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            align-items: center; 
+            align-content: center;
+            padding: 20px; 
+            margin: 0 auto; 
+            flex-grow: 1; 
+            gap: 5px 15px; /* Tighter spacing */
+            line-height: 0.9; /* Allows large fonts to sit closer together */
+        }
+        
+        .word { 
+            transition: all 0.3s ease; 
+            cursor: pointer; 
+            display: inline-block; 
+            position: relative;
+            padding: 5px;
+        }
+        .word:hover { color: #000 !important; transform: scale(1.08); z-index: 100; opacity: 1 !important; text-decoration: underline; }
 
         #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; z-index: 1000; justify-content: center; align-items: flex-end; }
         #modal-content { background: var(--paper); width: 100%; max-width: 800px; height: 85vh; border-radius: 20px 20px 0 0; padding: 40px; overflow-y: auto; box-shadow: 0 -10px 40px rgba(0,0,0,0.2); border: 1px solid var(--shadow); }
@@ -112,6 +133,7 @@
                 const container = document.getElementById('cloud');
                 container.innerHTML = '';
                 
+                // Shuffle to ensure larger words are spread out among smaller ones
                 const shuffled = words.sort(() => Math.random() - 0.5);
 
                 shuffled.forEach((word, index) => {
@@ -120,15 +142,22 @@
                     el.innerText = word.text;
                     el.onclick = () => openTheme(word.text);
                     
-                    const size = Math.min(160, word.size);
+                    // Cap size slightly to prevent absolute layout break, but keep drama
+                    const size = Math.min(140, word.size);
                     el.style.fontSize = size + 'px';
                     el.style.fontWeight = size > 65 ? '800' : '400';
                     
+                    // The Memento Scribble (Fixing fontFamily assignment)
+                    if (size < 70 && index % 6 === 0) {
+                        el.style.fontFamily = "'Permanent Marker', cursive";
+                    }
+
                     const colors = ['#1a1a1a', '#333333', '#4d4d4d', '#7F7A6D', '#8B1D20'];
                     el.style.color = colors[Math.floor(Math.random() * colors.length)];
-                    el.style.opacity = Math.min(1, 0.4 + (size / 160));
+                    el.style.opacity = Math.min(1, 0.4 + (size / 140));
                     
-                    const rotation = (index % 3 === 0) ? (Math.random() * 8 - 4) : 0;
+                    // Tighter rotation for a cleaner cluster
+                    const rotation = (index % 4 === 0) ? (Math.random() * 6 - 3) : 0;
                     el.style.transform = `rotate(${rotation}deg)`;
                     
                     container.appendChild(el);
