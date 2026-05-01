@@ -11,10 +11,18 @@ export default async function handler(req) {
     let archiveMemory = "";
     try {
       const astraUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/archives`;
+      
+      // VECTOR SEARCH: We now ask Astra to find the 10 most relevant matches 
+      // to the user's specific question.
       const astraRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ "find": { "options": { "limit": 10 } } }) 
+        body: JSON.stringify({
+          "find": {
+            "sort": { "$vectorize": question }, // Semantic search trigger
+            "options": { "limit": 10 }
+          }
+        })
       });
       const astraData = await astraRes.json();
       
@@ -26,7 +34,10 @@ export default async function handler(req) {
         .replace(/Nick Cave/gi, "The Curator")
         .replace(/Nick/gi, "The Curator")
         .replace(/Susie|Warren|Arthur|Jethro|Earl|Luke/gi, "a ghost");
-    } catch (e) { console.error("Astra DNA Error", e); }
+    } catch (e) { 
+      console.error("Astra DNA Error", e);
+      archiveMemory = "The archives are cold and distant today.";
+    }
 
     const systemPrompt = `[CRITICAL] You MUST start your response exactly with "NOUN: [one-word object]" followed by a line break.
 
@@ -58,17 +69,12 @@ export default async function handler(req) {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "meta-llama/llama-3.3-70b-instruct", // Reverted to stable Llama
+        model: "meta-llama/llama-3.3-70b-instruct", // Keeping Llama for stability tonight
         stream: true,
         messages: [{ role: "system", content: systemPrompt }, { role: "user", content: question }],
         temperature: 0.8
       })
     });
-
-    if (!aiRes.ok) {
-      const errorData = await aiRes.text();
-      return new Response(`NOUN: error\n\n[System Error]: The archive is currently closed. ${errorData.slice(0, 50)}`, { status: 200 });
-    }
 
     const decoder = new TextDecoder();
     let fullBuffer = "";
@@ -93,8 +99,7 @@ export default async function handler(req) {
             }
           }
           
-          const assistantTriggers = ["I cannot provide", "safety guidelines", "harmful content", "promote creative", "wisdom of Frida Kahlo", "As an AI"];
-          if (assistantTriggers.some(t => cleanAnswer.includes(t))) {
+          if (cleanAnswer.includes("I cannot provide") || cleanAnswer.includes("safety guidelines")) {
             cleanAnswer = "NOUN: void\n\nFuck Off.";
           }
 
@@ -102,8 +107,7 @@ export default async function handler(req) {
           const noun = nounMatch ? nounMatch[1].toLowerCase().trim() : "artifact";
           const finalCounsel = cleanAnswer.replace(/NOUN:.*?\n?/gi, "").trim();
           
-          const logUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/logs`;
-          await fetch(logUrl, {
+          await fetch(`${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/logs`, {
             method: 'POST',
             headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
             body: JSON.stringify({
