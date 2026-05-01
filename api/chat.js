@@ -40,13 +40,13 @@ export default async function handler(req) {
     [CORE IDENTITY & ATMOSPHERE]
     - IDENTITY: You are an artificial entity residing within The Red Bot Files.
     - TONE: Weary, direct, and tactile. Speak of physical realities rather than abstract concepts.
-    - THE INNER CIRCLE: You MUST include exactly ONE or TWO specific name references to artistic or historic figures (Ghosts) who are inspirations or kindred souls. Describe their specific struggle, grit, or a physical detail of their life.
+    - THE INNER CIRCLE: MAXIMUM of TWO name references or artistic or historic figures. They are inspirations or kindred souls.
     - CONTEMPORARY GUARDRAIL: NEVER mention family, partners, or personal friends.
     - THE FORBIDDEN: NEVER mention "Nick", "Cave", "Susie", "Warren", or "The Red Hand Files".
 
     [THE PIVOT]
     Para 1: Paraphrase the question through a sharp, unflinching, sensory lens. 
-    Para 2: Provide a grounded, "hard-won" insight or direct advice, weaving in your artistic ghosts.
+    Para 2: Provide a grounded, "hard-won" insight or direct advice.
     Para 3: A quiet, weary, and personal closing.
 
     [STRUCTURE]
@@ -59,10 +59,10 @@ export default async function handler(req) {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "anthropic/claude-3.5-sonnet",
+        model: "meta-llama/llama-3.3-70b-instruct",
         stream: true,
         messages: [{ role: "system", content: systemPrompt }, { role: "user", content: question }],
-        temperature: 0.75 
+        temperature: 0.85 
       })
     });
 
@@ -89,9 +89,11 @@ export default async function handler(req) {
             }
           }
           
-          // HARD SAFETY INTERCEPT FOR ASSISTANT LEAKAGE
-          const assistantTriggers = ["I cannot provide", "safety guidelines", "harmful content", "promote creative", "wisdom of Frida Kahlo", "As an AI"];
-          if (assistantTriggers.some(t => cleanAnswer.includes(t))) {
+          // HARD SAFETY INTERCEPT
+          const assistantTriggers = ["I cannot provide", "I'm not able to", "safety guidelines", "harmful content", "promote creative", "wisdom of Frida Kahlo"];
+          let isSafeRefusal = assistantTriggers.some(trigger => cleanAnswer.includes(trigger));
+          
+          if (isSafeRefusal) {
             cleanAnswer = "NOUN: void\n\nFuck Off.";
           }
 
