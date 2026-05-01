@@ -58,16 +58,16 @@ export default async function handler(req) {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "anthropic/claude-3.5-sonnet",
+        model: "meta-llama/llama-3.3-70b-instruct", // Reverted to stable Llama
         stream: true,
         messages: [{ role: "system", content: systemPrompt }, { role: "user", content: question }],
-        temperature: 0.75 
+        temperature: 0.8
       })
     });
 
     if (!aiRes.ok) {
-      const errorMsg = await aiRes.text();
-      return new Response(`NOUN: error\n\n[System Error]: The archive is unreachable. Credits or API status issue. Details: ${errorMsg.slice(0, 50)}`, { status: 200 });
+      const errorData = await aiRes.text();
+      return new Response(`NOUN: error\n\n[System Error]: The archive is currently closed. ${errorData.slice(0, 50)}`, { status: 200 });
     }
 
     const decoder = new TextDecoder();
@@ -108,7 +108,7 @@ export default async function handler(req) {
             headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
             body: JSON.stringify({
               "insertOne": { "document": { "_id": id, "question": question, "answer": finalCounsel, "noun": noun, "seed": seed, "created_at": new Date().toISOString() } }
-            }) // <--- Fixed Parenthesis
+            })
           });
         } catch (e) { }
       }
