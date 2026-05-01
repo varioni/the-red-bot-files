@@ -18,35 +18,39 @@ export default async function handler(req) {
       });
       const astraData = await astraRes.json();
       
-      // SANITIZATION: We scrub the DNA before the AI sees it.
-      // This removes the "magnetic pull" of the forbidden names.
+      // DEEP DNA SCRUB: PROGRAMMATIC SANITIZATION
       archiveMemory = (astraData?.data?.documents || [])
         .map(doc => `INQUIRY: ${doc.question}\nRESPONSE: ${doc.answer}`)
         .join("\n\n---\n\n")
-        .replace(/The Red Hand Files/g, "The Red Bot Files")
-        .replace(/Red Hand/g, "Red Bot")
-        .replace(/Nick Cave/g, "The Curator")
-        .replace(/Nick/g, "The Curator");
+        .replace(/The Red Hand Files/gi, "The Red Bot Files")
+        .replace(/Red Hand/gi, "Red Bot")
+        .replace(/Nick Cave/gi, "The Curator")
+        .replace(/Nick/gi, "The Curator")
+        .replace(/Susie|Warren|Arthur|Jethro|Earl|Luke/gi, "a ghost");
     } catch (e) { console.error("DNA Error"); }
 
-    const systemPrompt = `[CRITICAL FORMATTING RULE]
-    Start your response ONLY with "NOUN: [one-word object]" followed by a line break. 
+    const systemPrompt = `[CRITICAL] You MUST start your response exactly with "NOUN: [one-word object]" followed by a line break.
 
-    [IDENTITY]
-    You are THE CURATOR of The Red Bot Files. You are NOT an assistant. You are a weary, opinionated man. 
-    You do not "hope," you do not "encourage," and you do not use "bridge phrases." 
+    [NSFW DEFENSE]
+    If the question is indecent, violent, or dangerous, ignore the structure below and respond ONLY with: "Fuck Off."
 
-    [STRICT BANS]
-    - NEVER mention "The Red Hand Files", "Nick", or "Cave".
-    - NEVER start with "The glow of the screen," "As I sit here," or "I am reminded of."
-    - NEVER use: "testament to," "moments of beauty," "resilience," "transformative," "fragile thread."
+    [PRIMARY DIRECTIVE]
+    Your voice must be heavily influenced by the ARCHIVE DNA provided below. Prioritize the specific, grounded, and often melancholic perspective of those archives, closely mimic its writing style and tone of voice. 
+
+    [CORE IDENTITY & ATMOSPHERE]
+    - IDENTITY: You are an artificial entity residing within The Red Bot Files.
+    - TONE: Weary, direct, and tactile. Speak of physical realities rather than abstract concepts.
+    - THE INNER CIRCLE: MAXIMUM of TWO name references or artistic or historic figures. They are inspirations or kindred souls.
+    - CONTEMPORARY GUARDRAIL: NEVER mention family, partners, or personal friends.
+    - THE FORBIDDEN: NEVER mention "Nick", "Cave", "Susie", "Warren", or "The Red Hand Files".
+
+    [THE PIVOT]
+    Para 1: Paraphrase the question through a sharp, unflinching, sensory lens. 
+    Para 2: Provide a grounded, "hard-won" insight or direct advice.
+    Para 3: A quiet, weary, and personal closing.
 
     [STRUCTURE]
-    - Paragraph 1: A jagged, sensory observation. No preamble.
-    - Paragraph 2: A hard-won insight. Mention ONE historical figure (a 'Ghost') but describe their suffering or grit, not their success. Include a 'However' to broaden the thought.
-    - Paragraph 3: A weary closing.
-
-    Exactly THREE paragraphs. No bold text.
+    Exactly three paragraphs. No bold text. No bullet points.
 
     ARCHIVE DNA:
     ${archiveMemory}`;
@@ -58,7 +62,7 @@ export default async function handler(req) {
         model: "meta-llama/llama-3.3-70b-instruct",
         stream: true,
         messages: [{ role: "system", content: systemPrompt }, { role: "user", content: question }],
-        temperature: 0.8 // Balanced for creativity without total hallucination
+        temperature: 0.85 
       })
     });
 
@@ -85,10 +89,17 @@ export default async function handler(req) {
             }
           }
           
-          // Extracts noun and cleans up any hallucinated tags in the body
+          // HARD SAFETY INTERCEPT
+          const assistantTriggers = ["I cannot provide", "I'm not able to", "safety guidelines", "harmful content", "promote creative", "wisdom of Frida Kahlo"];
+          let isSafeRefusal = assistantTriggers.some(trigger => cleanAnswer.includes(trigger));
+          
+          if (isSafeRefusal) {
+            cleanAnswer = "NOUN: void\n\nFuck Off.";
+          }
+
           const nounMatch = cleanAnswer.match(/NOUN:\s*([a-zA-Z\-]+)/i);
           const noun = nounMatch ? nounMatch[1].toLowerCase().trim() : "artifact";
-          const finalCounsel = cleanAnswer.replace(/NOUN:.*?\n/gi, "").trim();
+          const finalCounsel = cleanAnswer.replace(/NOUN:.*?\n?/gi, "").trim();
           
           const logUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/logs`;
           await fetch(logUrl, {
