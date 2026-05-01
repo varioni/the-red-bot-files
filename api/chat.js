@@ -14,11 +14,10 @@ export default async function handler(req) {
       const astraRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ "find": { "options": { "limit": 20 } } })
+        body: JSON.stringify({ "find": { "options": { "limit": 10 } } }) // Reduced to 10 for speed
       });
       const astraData = await astraRes.json();
       
-      // DEEP DNA SCRUB: PROGRAMMATIC SANITIZATION
       archiveMemory = (astraData?.data?.documents || [])
         .map(doc => `INQUIRY: ${doc.question}\nRESPONSE: ${doc.answer}`)
         .join("\n\n---\n\n")
@@ -27,7 +26,7 @@ export default async function handler(req) {
         .replace(/Nick Cave/gi, "The Curator")
         .replace(/Nick/gi, "The Curator")
         .replace(/Susie|Warren|Arthur|Jethro|Earl|Luke/gi, "a ghost");
-    } catch (e) { console.error("DNA Error"); }
+    } catch (e) { console.error("Astra DNA Error", e); }
 
     const systemPrompt = `[CRITICAL] You MUST start your response exactly with "NOUN: [one-word object]" followed by a line break.
 
@@ -59,12 +58,18 @@ export default async function handler(req) {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "anthropic/claude-3.5-sonnet",
+        model: "anthropic/claude-3.5-sonnet", // Try llama-3.3-70b-instruct here if this still hangs
         stream: true,
         messages: [{ role: "system", content: systemPrompt }, { role: "user", content: question }],
         temperature: 0.75 
       })
     });
+
+    // ERROR INTERCEPT: If OpenRouter is broken or out of credits
+    if (!aiRes.ok) {
+      const errorMsg = await aiRes.text();
+      return new Response(`NOUN: error\n\n[System Error]: The archive is currently unreachable. Check your API credits or status. Details: ${errorMsg.slice(0, 50)}`, { status: 200 });
+    }
 
     const decoder = new TextDecoder();
     let fullBuffer = "";
@@ -89,7 +94,6 @@ export default async function handler(req) {
             }
           }
           
-          // HARD SAFETY INTERCEPT FOR ASSISTANT LEAKAGE
           const assistantTriggers = ["I cannot provide", "safety guidelines", "harmful content", "promote creative", "wisdom of Frida Kahlo", "As an AI"];
           if (assistantTriggers.some(t => cleanAnswer.includes(t))) {
             cleanAnswer = "NOUN: void\n\nFuck Off.";
@@ -105,7 +109,7 @@ export default async function handler(req) {
             headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
             body: JSON.stringify({
               "insertOne": { "document": { "_id": id, "question": question, "answer": finalCounsel, "noun": noun, "seed": seed, "created_at": new Date().toISOString() } }
-            })
+            }
           });
         } catch (e) { }
       }
