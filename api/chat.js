@@ -14,7 +14,7 @@ export default async function handler(req) {
       const astraRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ "find": { "options": { "limit": 10 } } }) // Reduced to 10 for speed
+        body: JSON.stringify({ "find": { "options": { "limit": 10 } } }) 
       });
       const astraData = await astraRes.json();
       
@@ -58,17 +58,16 @@ export default async function handler(req) {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "anthropic/claude-3.5-sonnet", // Try llama-3.3-70b-instruct here if this still hangs
+        model: "anthropic/claude-3.5-sonnet",
         stream: true,
         messages: [{ role: "system", content: systemPrompt }, { role: "user", content: question }],
         temperature: 0.75 
       })
     });
 
-    // ERROR INTERCEPT: If OpenRouter is broken or out of credits
     if (!aiRes.ok) {
       const errorMsg = await aiRes.text();
-      return new Response(`NOUN: error\n\n[System Error]: The archive is currently unreachable. Check your API credits or status. Details: ${errorMsg.slice(0, 50)}`, { status: 200 });
+      return new Response(`NOUN: error\n\n[System Error]: The archive is unreachable. Credits or API status issue. Details: ${errorMsg.slice(0, 50)}`, { status: 200 });
     }
 
     const decoder = new TextDecoder();
@@ -109,7 +108,7 @@ export default async function handler(req) {
             headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
             body: JSON.stringify({
               "insertOne": { "document": { "_id": id, "question": question, "answer": finalCounsel, "noun": noun, "seed": seed, "created_at": new Date().toISOString() } }
-            }
+            }) // <--- Fixed Parenthesis
           });
         } catch (e) { }
       }
