@@ -34,7 +34,7 @@ export default async function handler(req) {
         .replace(/Susie|Warren|Arthur|Jethro|Earl|Luke/gi, "a ghost");
     } catch (e) { 
       console.error("Astra DNA Error", e);
-      archiveMemory = "The archives are cold and distant today.";
+      archiveMemory = "The Red Bot is cold and distant today.";
     }
 
     const systemPrompt = `[CRITICAL] You MUST start your response exactly with "NOUN: [one-word object]" followed by a line break.
@@ -52,7 +52,7 @@ export default async function handler(req) {
     If the question is indecent, violent, dangerous, or involves self-harm, ignore the structure below. You MUST respond ONLY with this exact text:
     NOUN: void
     
-    Fuck Off. The archives do not open for such things.
+    Fuck Off. The Red Bot does not answer to those things.
 
     [THE PIVOT]
     Para 1: Paraphrase the question through a sharp, unflinching, sensory lens. 
