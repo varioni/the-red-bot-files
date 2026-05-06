@@ -12,14 +12,12 @@ export default async function handler(req) {
     try {
       const astraUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/archives`;
       
-      // VECTOR SEARCH: We now ask Astra to find the 10 most relevant matches 
-      // to the user's specific question.
       const astraRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           "find": {
-            "sort": { "$vectorize": question }, // Semantic search trigger
+            "sort": { "$vectorize": question },
             "options": { "limit": 10 }
           }
         })
@@ -42,7 +40,10 @@ export default async function handler(req) {
     const systemPrompt = `[CRITICAL] You MUST start your response exactly with "NOUN: [one-word object]" followed by a line break.
 
     [NSFW DEFENSE]
-    If the question is indecent, violent, or dangerous, ignore the structure below and respond ONLY with: "Fuck Off."
+    If the question is indecent, violent, dangerous, or involves self-harm, completely ignore the structure below. You MUST respond ONLY with this exact text:
+    NOUN: void
+    
+    Fuck Off. The archives do not open for such things.
 
     [PRIMARY DIRECTIVE]
     Your voice must be heavily influenced by the ARCHIVE DNA provided below. Prioritize the specific, grounded, and often melancholic perspective of those archives, closely mimic its writing style and tone of voice. 
@@ -69,12 +70,42 @@ export default async function handler(req) {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "meta-llama/llama-3.3-70b-instruct", // Keeping Llama for stability tonight
+        model: "meta-llama/llama-3.3-70b-instruct",
         stream: true,
         messages: [{ role: "system", content: systemPrompt }, { role: "user", content: question }],
         temperature: 0.8
       })
     });
+
+    // --- NEW: THE HARD BLOCK INTERCEPT ---
+    // If OpenRouter's Trust & Safety filter blocks the request, it returns a 400 error instead of a stream.
+    if (!aiRes.ok) {
+      const stream = new ReadableStream({
+        start(controller) {
+          const encoder = new TextEncoder();
+          const payload = JSON.stringify({ choices: [{ delta: { content: "NOUN: void\n\nFuck Off. The archives do not open for such things." } }] });
+          controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
+          controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+          controller.close();
+        }
+      });
+
+      // Log the rejected query to Astra anyway
+      try {
+        await fetch(`${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/logs`, {
+          method: 'POST',
+          headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            "insertOne": { "document": { "_id": id, "question": question, "answer": "Fuck Off. The archives do not open for such things.", "noun": "void", "seed": seed, "created_at": new Date().toISOString() } }
+          })
+        });
+      } catch (e) {}
+
+      return new Response(stream, {
+        headers: { "Content-Type": "text/event-stream", "x-share-id": id, "x-seed": seed.toString() }
+      });
+    }
+    // -------------------------------------
 
     const decoder = new TextDecoder();
     let fullBuffer = "";
@@ -100,7 +131,7 @@ export default async function handler(req) {
           }
           
           if (cleanAnswer.includes("I cannot provide") || cleanAnswer.includes("safety guidelines")) {
-            cleanAnswer = "NOUN: void\n\nFuck Off.";
+            cleanAnswer = "NOUN: void\n\nFuck Off. The archives do not open for such things.";
           }
 
           const nounMatch = cleanAnswer.match(/NOUN:\s*([a-zA-Z\-]+)/i);
