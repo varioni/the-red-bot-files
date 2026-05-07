@@ -44,9 +44,13 @@
         .attribution { color: var(--blood); display: block; margin-top: 15px; font-weight: 500; }
         .attribution a { color: var(--blood); text-decoration: underline; }
 
-        @media (max-width: 850px) { 
+       @media (max-width: 850px) { 
             .response-body { flex-direction: column; align-items: center; } 
             .polaroid-container { width: 100%; max-width: 350px; margin-bottom: 40px; } 
+            
+            /* Mobile Navigation Fixes */
+            .nav-container { flex-wrap: wrap; gap: 8px; font-size: 0.7rem; letter-spacing: 2px; }
+            .nav-container a { text-align: center; line-height: 1.4; }
         }
     </style>
 </head>
