@@ -80,7 +80,7 @@ export default async function handler(req) {
       const stream = new ReadableStream({
         start(controller) {
           const encoder = new TextEncoder();
-          const payload = JSON.stringify({ choices: [{ delta: { content: "NOUN: void\n\nFuck Off. The archives do not open for such things." } }] });
+          const payload = JSON.stringify({ choices: [{ delta: { content: "NOUN: void\n\nFuck Off. The Red Bot Files do not open for such things." } }] });
           controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
           controller.enqueue(encoder.encode('data: [DONE]\n\n'));
           controller.close();
@@ -92,7 +92,7 @@ export default async function handler(req) {
           method: 'POST',
           headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            "insertOne": { "document": { "_id": id, "question": question, "answer": "Fuck Off. The archives do not open for such things.", "noun": "void", "seed": seed, "created_at": new Date().toISOString() } }
+            "insertOne": { "document": { "_id": id, "question": question, "answer": "Fuck Off. The Red Bot Files do not open for such things.", "noun": "void", "seed": seed, "created_at": new Date().toISOString() } }
           })
         });
       } catch (e) {}
