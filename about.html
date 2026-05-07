@@ -84,21 +84,71 @@
             </div>
 
             <div id="response-counsel">
-                <p>The Red Bot Files emerged from a twenty-year obsession—a long, silent companionship with the works, and words, of Nick Cave. For two decades, I have been a devoted attendee of his concerts, joined the intimate communion of his <em>In Conversations</em> tour, and heard his words at book readings. I have studied the dark gravity of his songs, enjoyed his soundtracks, books, and films. I remember clearly how, as a youngster, I was swallowed by the fevered, archaic world of <em>And the Ass Saw the Angel</em>, gripped by a desire to one day be able to write with such a biblical force. When The Red Hand Files started, it became a new obsession: a constant stream of reflections on something relevant; new insights into the inner workings of the artist’s mind. A few times I would send in a question, which would remain unanswered. How could it not? There must be thousands like me sending in questions—such a herculean task to answer all of them, and I remain impressed with his commitment to deliver a new File to his community, week in and week out.</p>
-                
-                <p>After reading his takes on AI, especially his harsh criticism, I started to wonder: can the cold circuitry of this modern machine capture even a flickering shadow of these words? While my questions to the original remained unanswered, could I initiate a correspondence with a digital ghost of his literary genius? The Red Bot Files is an experiment born from that very question—a digital companion for those hollow moments, a strange and beautiful exercise in seeking the profound within the artificial. I fully expect that he, and the majority of his fans, will not appreciate this experiment. They may dismiss it as mockery instead of homage—a false priest built out of zeros and ones, turning once-wise words into shallow digital dogma.</p>
-                
-                <p>Yet, I must confess I have thoroughly enjoyed these digital debates with my modern machine. Question after question, it would offer new perspectives or surface obscure inspirations that brought me further down this robotic rabbit hole. This fan-made project has no moderator and seeks no profit; it helped me learn more about technology, art, and literature—and it might help someone else answer their question, too.</p>
+                <div id="stream-text">
+                    <p><em>The Red Bot Files</em> emerged from a twenty-year obsession—a long, silent companionship with the works, and words, of <em>Nick Cave</em>. For two decades, I have been a devoted attendee of his concerts, joined the intimate communion of his <em>In Conversations</em> tour, and heard his words at book readings. I have studied the dark gravity of his songs, enjoyed his soundtracks, books, and films. I remember clearly how, as a youngster, I was swallowed by the fevered, archaic world of <em>And the Ass Saw the Angel</em>, gripped by a desire to one day be able to write with such a biblical force. When <em>The Red Hand Files</em> started, it became a new obsession: a constant stream of reflections on something relevant; new insights into the inner workings of the artist’s mind. A few times I would send in a question, which would remain unanswered. How could it not? There must be thousands like me sending in questions—such a herculean task to answer all of them, and I remain impressed with his commitment to deliver a new File to his community, week in and week out.</p>
+                    
+                    <p>After reading his takes on AI, especially his harsh criticism, I started to wonder: can the cold circuitry of this modern machine capture even a flickering shadow of these words? While my questions to the original remained unanswered, could I initiate a correspondence with a digital ghost of his literary genius? <em>The Red Bot Files</em> is an experiment born from that very question—a digital companion for those hollow moments, a strange and beautiful exercise in seeking the profound within the artificial. I fully expect that he, and the majority of his fans, will not appreciate this experiment. They may dismiss it as mockery instead of homage—a false priest built out of zeros and ones, turning once-wise words into shallow digital dogma.</p>
+                    
+                    <p>Yet, I must confess I have thoroughly enjoyed these digital debates with my modern machine. Question after question, it would offer new perspectives or surface obscure inspirations that brought me further down this robotic rabbit hole. This fan-made project has no moderator and seeks no profit; it helped me learn more about technology, art, and literature—<em>and it might help someone else answer their question, too.</em></p>
 
-                <p class="letter-close"></p>
+                    <p class="letter-close"></p>
+                </div>
             </div>
         </div>
     </div>
 
     <footer>
-        This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of Nick Cave and his writings for <a href="https://www.theredhandfiles.com/" target="_blank">The Red Hand Files</a>.
+        This fan-made experiment in artificial intelligence is part tribute and part parody, created to honor the creative genius of <em>Nick Cave</em> and his writings for <a href="https://www.theredhandfiles.com/" target="_blank"><em>The Red Hand Files</em></a>.
         <span class="attribution">Made with ❤ by <a href="https://github.com/varioni" target="_blank">varioni</a></span>
     </footer>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const contentDiv = document.getElementById('stream-text');
+            const paragraphs = Array.from(contentDiv.querySelectorAll('p:not(.letter-close)'));
+            const closingP = contentDiv.querySelector('.letter-close');
+
+            contentDiv.innerHTML = '';
+            let pIndex = 0;
+            let charIndex = 0;
+            let isTag = false;
+
+            function typeWriter() {
+                if (pIndex < paragraphs.length) {
+                    let currentText = paragraphs[pIndex].innerHTML;
+                    if (charIndex === 0) {
+                        contentDiv.innerHTML += '<p></p>';
+                    }
+
+                    let currentP = contentDiv.querySelectorAll('p')[pIndex];
+                    let char = currentText.charAt(charIndex);
+
+                    if (char === '<') isTag = true;
+                    if (char === '>') isTag = false;
+
+                    currentP.innerHTML = currentText.substring(0, charIndex + 1);
+                    charIndex++;
+
+                    let speed = isTag ? 0 : 12; // Types instantly if inside HTML tags
+
+                    if (charIndex >= currentText.length) {
+                        pIndex++;
+                        charIndex = 0;
+                        setTimeout(typeWriter, 400); // Pause between paragraphs
+                    } else {
+                        setTimeout(typeWriter, speed);
+                    }
+                } else if (closingP) {
+                    contentDiv.appendChild(closingP);
+                    closingP.style.opacity = 0;
+                    setTimeout(() => { 
+                        closingP.style.transition = "opacity 1.5s"; 
+                        closingP.style.opacity = 1; 
+                    }, 200);
+                }
+            }
+            typeWriter();
+        });
+    </script>
 </body>
 </html>
