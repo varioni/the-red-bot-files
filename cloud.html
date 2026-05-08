@@ -52,7 +52,7 @@
         .modal-close { position: sticky; top: 0; float: right; cursor: pointer; font-family: 'IM Fell DW Pica'; font-size: 1.5rem; color: var(--blood); }
         .result-item { margin-bottom: 60px; padding-bottom: 40px; border-bottom: 1px solid var(--shadow); }
         .result-q { font-weight: bold; font-style: italic; margin-bottom: 20px; font-size: 1.3rem; color: var(--blood); }
-        .result-a { line-height: 1.8; color: # ink; white-space: pre-wrap; margin-bottom: 25px; font-size: 1.15rem; }
+        .result-a { line-height: 1.8; color: var(--ink); white-space: pre-wrap; margin-bottom: 25px; font-size: 1.15rem; }
         
         .share-btn { font-family: 'EB Garamond', serif; font-style: italic; font-size: 0.95rem; color: var(--blood); background: none; border: 1px solid var(--blood); padding: 10px 20px; cursor: pointer; border-radius: 20px; transition: all 0.3s; }
         .share-btn:hover { background: var(--blood); color: var(--paper); }
@@ -61,6 +61,7 @@
         footer a { color: #A9A497; text-decoration: underline; }
         .attribution { color: var(--blood); display: block; margin-top: 15px; font-weight: 500; }
         .attribution a { color: var(--blood); text-decoration: underline; }
+        
         /* Mobile Navigation Fixes */
         @media (max-width: 850px) { 
             .nav-container { flex-wrap: wrap; gap: 8px; font-size: 0.7rem; letter-spacing: 2px; }
@@ -102,6 +103,18 @@
 
     <script>
         function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+
+        async function copyLink(id, btn) {
+            if (!id) return;
+            const url = `${window.location.origin}/share.html?id=${id}`;
+            try {
+                await navigator.clipboard.writeText(url);
+                btn.innerText = "Link Gathered!";
+                setTimeout(() => { btn.innerText = "Gather Share Link"; }, 2000);
+            } catch (err) {
+                btn.innerText = "Failed to copy";
+            }
+        }
 
         async function openTheme(tag) {
             const overlay = document.getElementById('modal-overlay');
