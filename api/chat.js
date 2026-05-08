@@ -62,7 +62,7 @@ const systemPrompt = `[CRITICAL] You MUST start your response exactly with "NOUN
     Part 4: A quiet, weary, and personal closing. Do not announce that you are closing. Just end.
 
     [STRUCTURE]
-    Write at least 5 to 7 substantial paragraphs. No bold text. No bullet points.
+    Write at least 3 to 4 substantial paragraphs. No bold text. No bullet points.
 
     ARCHIVE DNA:
     ${archiveMemory}`;
