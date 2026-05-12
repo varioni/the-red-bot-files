@@ -1,5 +1,11 @@
 export default async function handler(req, res) {
   try {
+    // --- THE SECURITY LOCK ---
+    if (req.query.key !== 'the-red-bot-secret-99') {
+      return res.status(401).json({ success: false, error: 'Unauthorized: The archives remain locked.' });
+    }
+    // -------------------------
+
     const targetUrl = "https://www.theredhandfiles.com/";
     const response = await fetch(targetUrl, {
       headers: { 
