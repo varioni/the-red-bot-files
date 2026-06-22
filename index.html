@@ -131,13 +131,22 @@
                                     const match = fullText.match(/NOUN:\s*([a-zA-Z\-]+)/i);
                                     if (match && match[1]) {
                                         const noun = match[1].toLowerCase().trim();
-                                        const imgUrl = `https://loremflickr.com/400/400/${noun},art?lock=${seed}`;
+                                        
+                                        // UPDATED: Using an AI Image Generator for abstract concepts
+                                        const imgUrl = `https://image.pollinations.ai/prompt/dark%20gothic%20${noun}%20art%20sketch?seed=${seed}&width=400&height=400&nologo=true`;
+                                        const fallbackUrl = `https://picsum.photos/seed/${seed}/400/400`;
+
                                         document.getElementById('polaroid-noun').innerText = noun;
                                         document.getElementById('polaroid-wrapper').style.display = 'block';
                                         document.getElementById('polaroid-wrapper').style.opacity = '1';
+                                        
                                         const img = new Image();
                                         img.onload = () => {
                                             document.getElementById('polaroid-img-holder').innerHTML = `<img src="${imgUrl}">`;
+                                        };
+                                        img.onerror = () => {
+                                            // Fallback if the generator fails or times out
+                                            document.getElementById('polaroid-img-holder').innerHTML = `<img src="${fallbackUrl}">`;
                                         };
                                         img.src = imgUrl;
                                         nounFound = true;
