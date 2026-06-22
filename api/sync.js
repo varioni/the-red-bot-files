@@ -35,17 +35,24 @@ export default async function handler(req, res) {
 
     let addedCount = 0;
     let history = [];
-    const astraUrl = `${process.env.ASTRA_ENDPOINT.replace(/\/$/, "")}/api/json/v1/default_keyspace/archives`;
+    const astraUrl = `${process.env.ASTRA_ENDPOINT?.replace(/\/$/, "")}/api/json/v1/default_keyspace/archives`;
 
     for (const link of uniqueLinks) {
       const checkRes = await fetch(astraUrl, {
         method: 'POST',
         headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ "find": { "filter": { "url": link } } })
+        body: JSON.stringify({ "findOne": { "filter": { "url": link } } })
       });
       const checkData = await checkRes.json();
 
-      if (checkData?.data?.documents?.length === 0) {
+      // Explicitly catch and log database errors to prevent false "EXISTS" reports
+      if (checkData.errors) {
+        history.push(`ERROR checking DB for ${link}: ${JSON.stringify(checkData.errors)}`);
+        continue; 
+      }
+
+      // findOne returns data.document as null if no match is found
+      if (!checkData?.data?.document) {
         const issuePage = await fetch(link, { headers: { 'User-Agent': 'Mozilla/5.0' } });
         const issueHtml = await issuePage.text();
         
@@ -62,9 +69,8 @@ export default async function handler(req, res) {
             .replace(/\s+/g, ' ')
             .trim();
 
-          // Lowered threshold to catch short letters/responses
           if (cleanBody.length > 300) {
-            await fetch(astraUrl, {
+            const insertRes = await fetch(astraUrl, {
               method: 'POST',
               headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -78,8 +84,16 @@ export default async function handler(req, res) {
                 }
               })
             });
-            addedCount++;
-            history.push(`SUCCESS: ${link}`);
+            
+            const insertData = await insertRes.json();
+            
+            // Check for errors during insertion as well
+            if (insertData.errors) {
+              history.push(`FAILED INSERT: ${link} - ${JSON.stringify(insertData.errors)}`);
+            } else {
+              addedCount++;
+              history.push(`SUCCESS: ${link}`);
+            }
           } else {
             history.push(`REJECTED: Content too short (${cleanBody.length} chars) at ${link}`);
           }
