@@ -74,7 +74,6 @@
         <div class="result-content">
             <div class="polaroid-frame">
                 <img id="shared-img" src="" alt="Artifact">
-                <!-- Noun now loads here -->
                 <div id="shared-noun" class="polaroid-caption"></div>
             </div>
             <div id="shared-answer" class="answer-text"></div>
@@ -101,10 +100,19 @@
                     document.getElementById('shared-question').innerText = data.question;
                     document.getElementById('shared-answer').innerText = data.answer;
                     
-                    // Populate the noun in the Polaroid frame
-                    document.getElementById('shared-noun').innerText = data.noun || "Artifact";
+                    const noun = data.noun || "artifact";
+                    document.getElementById('shared-noun').innerText = noun;
                     
-                    document.getElementById('shared-img').src = `https://loremflickr.com/400/400/${data.noun},gothic/all?lock=${data.seed}`;
+                    const imgUrl = `https://image.pollinations.ai/prompt/dark%20gothic%20${noun}%20art%20sketch?seed=${data.seed}&width=400&height=400&nologo=true`;
+                    const fallbackUrl = `https://picsum.photos/seed/${data.seed}/400/400`;
+                    
+                    const imgElement = document.getElementById('shared-img');
+                    
+                    imgElement.onerror = () => {
+                        imgElement.src = fallbackUrl;
+                    };
+                    imgElement.src = imgUrl;
+
                     document.getElementById('content').style.display = 'flex';
                 }
             } catch (e) {
