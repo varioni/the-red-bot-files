@@ -1,21 +1,15 @@
 export default async function handler(req, res) {
   try {
-    // 1. Extract parameters from the URL
-    const { searchParams } = new URL(req.url, `http://${req.headers.host}`);
-    const providedKey = searchParams.get('key');
-    const wordToPurge = searchParams.get('word');
+    // 1. Extract parameters properly using req.query
+    const { key: providedKey, word: wordToPurge } = req.query;
 
     // 2. Security Check
     if (!providedKey || providedKey !== process.env.PURGE_KEY) {
-      return res.status(403).json({ 
-        error: "Access denied. A valid security key is required." 
-      });
+      return res.status(403).json({ error: "Access denied. A valid security key is required." });
     }
 
     if (!wordToPurge) {
-      return res.status(400).json({ 
-        error: "Please specify a word to purge. Usage: /api/purge?word=[word]&key=[your-key]" 
-      });
+      return res.status(400).json({ error: "Please specify a word to purge. Usage: /api/purge?word=[word]&key=[your-key]" });
     }
 
     const keyword = wordToPurge.toLowerCase().trim();
@@ -40,30 +34,28 @@ export default async function handler(req, res) {
     } while (nextState);
 
     // Filter for logs mentioning the keyword
-    const toDelete = allDocs.filter(doc => {
+    const toDeleteIds = allDocs.filter(doc => {
       const content = `${doc.question} ${doc.answer} ${doc.noun || ""}`.toLowerCase();
       return content.includes(keyword);
-    });
+    }).map(doc => doc._id);
 
-    if (toDelete.length === 0) {
+    if (toDeleteIds.length === 0) {
       return res.status(200).json({ message: `No logs found containing the word: "${keyword}"` });
     }
 
-    // 4. Execution: Delete them
-    let deletedCount = 0;
-    for (const doc of toDelete) {
-      await fetch(astraUrl, {
-        method: 'POST',
-        headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ "deleteOne": { "filter": { "_id": doc._id } } })
-      });
-      deletedCount++;
-    }
+    // 4. Execution: Delete them in a single batch request
+    await fetch(astraUrl, {
+      method: 'POST',
+      headers: { 'Token': process.env.ASTRA_TOKEN, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        "deleteMany": { "filter": { "_id": { "$in": toDeleteIds } } } 
+      })
+    });
 
     res.status(200).json({ 
       status: "Success", 
       target_word: keyword, 
-      deleted_count: deletedCount 
+      deleted_count: toDeleteIds.length 
     });
 
   } catch (err) {
